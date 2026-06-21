@@ -3,67 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zen Dictation Machine</title>
+    <title>Zen Dictation Machine - Menu</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-    <div id="screen-welcome" class="container">
-        <h1>Good Luck! 🍀</h1>
-        <p>Get your notebooks and pencils ready. Take a deep breath.</p>
-        <div class="button-group">
-            <button onclick="startDictation()">Start Dictation</button>
-            <button onclick="startDirectCheck()" style="background-color: #6b7c6e;">Go to Checking</button>
+    <div class="container">
+        <h1>Select Unit 📚</h1>
+        <p>Choose the dictation you want to run today:</p>
+        <div class="button-group" style="flex-direction: column; align-items: center; gap: 20px;">
+            <button onclick="window.location.href='dictation.html?unit=1'" style="width: 100%; max-width: 400px;">Unit 1. Our new things</button>
+            <button onclick="window.location.href='dictation.html?unit=2'" style="width: 100%; max-width: 400px;">Unit 2. They're happy now</button>
         </div>
     </div>
 
-    <div id="screen-dictation" class="container hidden">
-        <h2 id="dictation-title">Word</h2>
-        <img id="dictation-img" class="dictation-image" src="" alt="Dictation word">
-        <div class="progress-container">
-            <div id="timer-bar" class="progress-bar"></div>
-        </div>
-        <div id="dictation-counter" class="counter">Word 1 of 10</div>
-        
-        <div class="nav-arrows">
-            <button id="dict-prev" onclick="prevDictationWord()">←</button>
-            <button id="dict-next" onclick="nextDictationWord()">→</button>
-        </div>
-    </div>
+    <audio id="focus-chime" src="audio/chime.mp3" preload="auto"></audio>
 
-    <div id="screen-check-student" class="container hidden">
-        <h2>Who is going to write? 🤔</h2>
-        <div id="student-number" class="student-box">-</div>
-        
-        <div id="randomizer-actions" class="button-group">
-            <button id="btn-roll" onclick="rollStudent()">Roll Student</button>
-            <button id="btn-reroll" class="hidden" onclick="rollStudent()" style="background-color: #a3b18a;">Reroll</button>
-            <button id="btn-confirm-student" class="hidden" onclick="confirmStudent()" style="background-color: #3a5a40;">OK</button>
-        </div>
-        <div id="check-student-counter" class="counter">Word 1 of 10</div>
-    </div>
-
-    <div id="screen-check-word" class="container hidden">
-        <h2 id="check-word-title">Check Word</h2>
-        <img id="check-img" class="dictation-image" src="" alt="Check word">
-        <div id="answer-display" class="answer-text"></div>
-        
-        <div class="button-group">
-            <button id="btn-answer" onclick="showAnswer()">Show the Answer</button>
-        </div>
-
-        <div class="nav-arrows">
-            <button id="check-prev" onclick="prevCheckWord()">←</button>
-            <button id="check-next" onclick="nextCheckWord()">→</button>
-        </div>
-    </div>
-
-    <div id="screen-finish" class="container hidden">
-        <h1>Well Done! 🎉</h1>
-        <p>The dictation is finished. Great focus today!</p>
-        <button onclick="resetApp()">Restart Application</button>
-    </div>
-
+    <script src="js/data.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

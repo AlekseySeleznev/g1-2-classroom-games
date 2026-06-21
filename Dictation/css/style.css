@@ -1,7 +1,6 @@
-/* Базовые эко-стили и пастельная палитра */
 body {
     font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
-    background-color: #f4f7f5; /* Мягкий цвет шалфея */
+    background-color: #f4f7f5;
     color: #2c3e50;
     margin: 0;
     padding: 0;
@@ -39,7 +38,7 @@ p {
     color: #6b7c6e;
 }
 
-/* Кнопки в стиле минимализма */
+
 button {
     font-family: inherit;
     background-color: #588157;
@@ -62,7 +61,6 @@ button:active {
     transform: translateY(0);
 }
 
-/* Стили для картинок */
 .dictation-image {
     max-width: 100%;
     max-height: 400px;
@@ -85,12 +83,11 @@ button:active {
 .progress-bar {
     width: 100%;
     height: 100%;
-    background-color: #a3b18a; /* Мягкий травяной */
+    background-color: #a3b18a;
     border-radius: 6px;
     transition: width 0.1s linear;
 }
 
-/* Фаза проверки и рандомайзер */
 .student-box {
     font-size: 5rem;
     font-weight: bold;
@@ -121,7 +118,7 @@ button:active {
     margin-top: 15px;
 }
 
-/* Группировка кнопок в ряд */
+
 .button-group {
     display: flex;
     gap: 20px;
@@ -129,7 +126,7 @@ button:active {
     margin-top: 30px;
 }
 
-/* Блок для стрелочек навигации */
+
 .nav-arrows {
     display: flex;
     justify-content: center;
@@ -137,7 +134,7 @@ button:active {
     margin-top: 25px;
 }
 
-/* Стиль самих стрелочек (сдержанный эко-минимализм) */
+
 .nav-arrows button {
     background-color: #e9ecef;
     color: #4a5d4e;
@@ -153,9 +150,83 @@ button:active {
     border-color: #a3b18a;
 }
 
-/* Стиль для отключенной стрелочки (невидимая, но сохраняющая место) */
+
 .nav-arrows button:disabled {
     opacity: 0;
     cursor: default;
     pointer-events: none;
+}
+
+#date-display {
+    font-size: 1.8rem;
+    color: #4a5d4e;
+    background-color: #ffffff;
+    padding: 10px 25px;
+    border-radius: 12px;
+    display: inline-block;
+    border: 2px dashed #a3b18a;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #588157;
+    border: 2px solid #588157;
+    box-shadow: none;
+}
+
+.btn-secondary:hover {
+    background-color: #f4f7f5;
+    color: #3a5a40;
+    border-color: #3a5a40;
+}
+
+/* Кнопка возврата */
+.btn-text {
+    background-color: transparent;
+    color: #8e9e93;
+    box-shadow: none;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+}
+
+.btn-text:hover {
+    background-color: #e9ecef;
+    color: #4a5d4e;
+}
+
+/* Мягкая инструкция для детей */
+.instruction-text {
+    font-size: 1.4rem;
+    color: #8e9e93;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* Обновленный блок даты */
+#date-display {
+    font-size: 1.8rem;
+    color: #4a5d4e;
+    background-color: #ffffff;
+    padding: 10px 25px;
+    border-radius: 12px;
+    display: inline-block;
+    border: 2px dashed #a3b18a;
+    margin-top: 0;
+    margin-bottom: 40px; /* Четкий визуальный водораздел после даты */
+}
+
+/* Заголовок юнита */
+.unit-title {
+    font-size: 2.2rem;
+    color: #3a5a40;
+    margin-top: 0; /* Убираем ту самую дефолтную браузерную "дыру" */
+    margin-bottom: 10px; /* Даем немного воздуха до клевера */
+}
+
+/* Пожелание удачи */
+.good-luck-text {
+    font-size: 2.5rem;
+    color: #588157;
+    margin-top: 0;
+    margin-bottom: 40px; /* Просторная пауза перед кнопками */
 }

@@ -1,15 +1,47 @@
-const wordsList = [
-    "classroom", "table", "computer", "peg", "pencil case",
-    "poster", "picture", "drawers", "cupboard", "CD player"
-];
+// js/app.js
 
-const TOTAL_WORDS = 10;
+// 1. Extract the unit ID from the URL parameters (e.g., ?unit=2)
+const urlParams = new URLSearchParams(window.location.search);
+const unitId = urlParams.get('unit') || '1'; // Default to Unit 1 if no parameter is found
+
+// 2. Retrieve the current unit data from the data.js object
+const currentUnit = dictationData[unitId] || dictationData["1"];
+const wordsList = currentUnit.words;
+const TOTAL_WORDS = wordsList.length;
 const TIME_PER_WORD = 40; 
 
 let currentWordIndex = 0;
 let timerInterval = null;
 let timeLeft = 0;
 let studentsPool = [];
+
+// Helper function to build the date in "Thursday 26th March 2026" format
+function getFormattedDate() {
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
+    const now = new Date();
+    const dayName = days[now.getDay()];
+    const date = now.getDate();
+    const monthName = months[now.getMonth()];
+    const year = now.getFullYear();
+    
+    // Determine the correct English ordinal suffix (st, nd, rd, th)
+    let suffix = "th";
+    if (date < 11 || date > 13) {
+        switch (date % 10) {
+            case 1: suffix = "st"; break;
+            case 2: suffix = "nd"; break;
+            case 3: suffix = "rd"; break;
+        }
+    }
+    
+    return `${dayName} ${date}${suffix} ${monthName} ${year}`;
+}
+
+// Set the correct title and the actual date on the welcome screen
+document.getElementById('welcome-subtitle').innerText = currentUnit.title;
+document.getElementById('date-display').innerText = getFormattedDate();
 
 function initStudents() {
     studentsPool = Array.from({length: 33}, (_, i) => i + 1);
@@ -25,19 +57,24 @@ function showScreen(screenId) {
     document.getElementById(screenId).classList.remove('hidden');
 }
 
-// --- УПРАВЛЕНИЕ СТРЕЛОЧКАМИ (Учитываем границы 1 и 10 слова) ---
 function updateArrows(prevBtnId, nextBtnId) {
     const prevBtn = document.getElementById(prevBtnId);
     const nextBtn = document.getElementById(nextBtnId);
     
-    // Если слово первое — левая стрелка исчезает
     prevBtn.disabled = (currentWordIndex === 0);
-    // Если слово последнее — правая стрелка исчезает
     nextBtn.disabled = (currentWordIndex === TOTAL_WORDS - 1);
 }
 
-// --- ФАЗА 1: ДИКТАНТ ---
+// --- PHASE 1: DICTATION ---
+// --- PHASE 1: DICTATION ---
 function startDictation() {
+    // Play the Zen chime sound
+    const chime = document.getElementById('focus-chime');
+    if (chime) {
+        chime.currentTime = 0; // Reset sound if clicked multiple times
+        chime.play().catch(err => console.log("Audio play blocked by browser:", err));
+    }
+
     initStudents(); 
     currentWordIndex = 0;
     showScreen('screen-dictation');
@@ -53,12 +90,13 @@ function loadDictationWord() {
     }
 
     document.getElementById('dictation-title').innerText = `Look and write word #${currentWordIndex + 1}`;
-    document.getElementById('dictation-img').src = `images/${currentWordIndex + 1}.jpg`;
+    
+    // Dynamic image path generation based on the active unit
+    document.getElementById('dictation-img').src = `images/unit${unitId}/${currentWordIndex + 1}.jpg`;
     document.getElementById('dictation-counter').innerText = `Word ${currentWordIndex + 1} of ${TOTAL_WORDS}`;
     
     updateArrows('dict-prev', 'dict-next');
 
-    // Настройка таймера
     timeLeft = TIME_PER_WORD * 10;
     const totalSteps = TIME_PER_WORD * 10;
     const bar = document.getElementById('timer-bar');
@@ -77,7 +115,6 @@ function loadDictationWord() {
     }, 100);
 }
 
-// Ручные стрелочки в диктанте
 function prevDictationWord() {
     if (currentWordIndex > 0) {
         clearInterval(timerInterval);
@@ -98,13 +135,12 @@ function nextDictationWord() {
     }
 }
 
-// --- ФАЗА 2: ПРОВЕРКА ---
+// --- PHASE 2: CHECKING ---
 function startCheckPhase() {
     showScreen('screen-check-student');
     document.getElementById('student-number').innerText = "-";
     document.getElementById('check-student-counter').innerText = `Word ${currentWordIndex + 1} of ${TOTAL_WORDS}`;
     
-    // Сброс кнопок рандомайзера в исходное состояние
     document.getElementById('btn-roll').classList.remove('hidden');
     document.getElementById('btn-reroll').classList.add('hidden');
     document.getElementById('btn-confirm-student').classList.add('hidden');
@@ -118,7 +154,6 @@ function rollStudent() {
     const display = document.getElementById('student-number');
     let counter = 0;
     
-    // Скрываем все кнопки на время крутилки
     document.getElementById('btn-roll').classList.add('hidden');
     document.getElementById('btn-reroll').classList.add('hidden');
     document.getElementById('btn-confirm-student').classList.add('hidden');
@@ -133,11 +168,9 @@ function rollStudent() {
             const randomIndex = Math.floor(Math.random() * studentsPool.length);
             const chosenStudent = studentsPool[randomIndex];
             
-            // Фиксируем номер на экране
             display.innerText = chosenStudent;
-            display.setAttribute('data-chosen', chosenStudent); // Временно запоминаем номер
+            display.setAttribute('data-chosen', chosenStudent); 
             
-            // Показываем кнопки Reroll и OK вместо автоперехода
             document.getElementById('btn-reroll').classList.remove('hidden');
             document.getElementById('btn-confirm-student').classList.remove('hidden');
         } else {
@@ -147,9 +180,7 @@ function rollStudent() {
     setTimeout(rollInterval, intervalTime);
 }
 
-// Подтверждение студента по кнопке OK
 function confirmStudent() {
-    // Окончательно удаляем выбранного студента из пула только при нажатии OK
     const chosen = parseInt(document.getElementById('student-number').getAttribute('data-chosen'));
     const indexInPool = studentsPool.indexOf(chosen);
     if (indexInPool !== -1) {
@@ -162,7 +193,9 @@ function confirmStudent() {
 function showCheckWordScreen() {
     showScreen('screen-check-word');
     document.getElementById('check-word-title').innerText = `Word #${currentWordIndex + 1}`;
-    document.getElementById('check-img').src = `images/${currentWordIndex + 1}.jpg`;
+    
+    // Dynamic image path for checking phase
+    document.getElementById('check-img').src = `images/unit${unitId}/${currentWordIndex + 1}.jpg`;
     document.getElementById('answer-display').innerText = ""; 
     
     document.getElementById('btn-answer').classList.remove('hidden');
@@ -175,20 +208,19 @@ function showAnswer() {
     document.getElementById('answer-display').innerText = currentWordText;
 }
 
-// Навигация стрелочками внутри проверки
 function prevCheckWord() {
     if (currentWordIndex > 0) {
         currentWordIndex--;
-        startCheckPhase(); // Возврат к выбору студента для предыдущего слова
+        startCheckPhase(); 
     }
 }
 
 function nextCheckWord() {
     if (currentWordIndex < TOTAL_WORDS - 1) {
         currentWordIndex++;
-        startCheckPhase(); // Переход к выбору студента для следующего слова
+        startCheckPhase(); 
     } else {
-        showScreen('screen-finish'); // Окончание проверки
+        showScreen('screen-finish'); 
     }
 }
 
