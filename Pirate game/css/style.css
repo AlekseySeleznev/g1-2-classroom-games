@@ -1,0 +1,243 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1c1e;
+    color: #f0f2f5;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Верхняя панель управления */
+.control-panel {
+    height: 70px;
+    background-color: #2c3036;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 10;
+    position: relative;
+}
+
+.level-selector, .score-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+button {
+    background-color: #3e444c;
+    color: #fff;
+    border: 2px solid #525a65;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background-color: #525a65;
+    border-color: #707b8a;
+}
+
+button.active {
+    background-color: #ff9f43;
+    border-color: #ffb167;
+    color: #1a1c1e;
+    box-shadow: 0 0 10px rgba(255, 159, 67, 0.4);
+}
+
+/* Счёт */
+.scoreboard {
+    display: flex;
+    gap: 20px;
+}
+
+.team-score {
+    background: #1a1c1e;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    border: 1px solid #3e444c;
+}
+
+.team-score span {
+    color: #ff9f43;
+    font-weight: bold;
+}
+
+/* Главная сцена */
+.game-stage {
+    height: calc(100vh - 70px);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, #282c34 0%, #181a1f 100%);
+}
+
+/* ЛЕЙАУТ 1: Сплит-экран (Ровно 50/50) */
+.split-container {
+    display: none;
+    width: 100%;
+    height: 100%;
+}
+
+.split-box {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+}
+
+.split-left {
+    border-right: 3px dashed #3e444c;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* ЛЕЙАУТ 2: Одиночный экран на максимум */
+.single-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+}
+
+/* Обертка картинок */
+.card-image-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.card-image {
+    max-width: 100%;
+    max-height: calc(100vh - 140px);
+    object-fit: contain;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    transition: clip-path 0.1s ease-in-out;
+}
+
+/* РЕЖИМ ПОДЗОРНОЙ ТРУБЫ (Эффект маски для Level 2) */
+.spyglass-mode {
+    background-color: #000000 !important; /* Черный фон вокруг открытого фрагмента */
+    border-radius: 20px;
+    box-shadow: inset 0 0 40px rgba(0,0,0,1), 0 20px 50px rgba(0,0,0,0.8);
+}
+
+/* Заглушка */
+.image-placeholder {
+    width: 80%;
+    height: 70%;
+    background: #3e444c;
+    border-radius: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 48px;
+    font-weight: 900;
+    color: #ff9f43;
+    border: 6px dashed #ff9f43;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.6);
+    text-align: center;
+    padding: 20px;
+}
+
+/* Экраны состояний */
+.status-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #181a1f;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+}
+
+.giant-text {
+    font-size: 120px;
+    font-weight: 900;
+    color: #ff9f43;
+    text-transform: uppercase;
+    text-align: center;
+    animation: pulse 1s infinite alternate;
+}
+
+.sub-text {
+    font-size: 34px;
+    color: #a0a5b0;
+    margin-top: 20px;
+}
+
+/* Полоса таймера */
+.timer-bar-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background-color: #2c3036;
+    display: none;
+    z-index: 12;
+}
+
+.timer-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #ff9f43, #ff5252);
+    transition: width linear;
+}
+
+/* Кнопка управления раундом */
+.action-trigger-zone {
+    position: absolute;
+    bottom: 45px;
+    z-index: 15;
+}
+
+.btn-main {
+    font-size: 32px;
+    padding: 20px 60px;
+    background-color: #ff9f43;
+    color: #1a1c1e;
+    border: none;
+    border-radius: 60px;
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(255, 159, 67, 0.5);
+}
+
+.btn-main:hover {
+    background-color: #ffb167;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(255, 159, 67, 0.7);
+}
+
+.btn-main:active {
+    transform: translateY(1px);
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); text-shadow: 0 0 10px rgba(255,159,67,0); }
+    100% { transform: scale(1.05); text-shadow: 0 0 30px rgba(255,159,67,0.6); }
+}

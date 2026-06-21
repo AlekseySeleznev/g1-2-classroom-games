@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pirate Interactive Game</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="control-panel">
+        <div class="level-selector">
+            <button id="btn-lvl1" class="active" onclick="changeLevel(1)">LEVEL 1: Learn</button>
+            <button id="btn-lvl2" onclick="changeLevel(2)">LEVEL 2: Speed Run</button>
+            <button id="btn-lvl3" onclick="changeLevel(3)">LEVEL 3: Blind Listening</button>
+        </div>
+
+        <div class="score-controls">
+            <div class="scoreboard">
+                <div class="team-score">T1: <span id="s1">0</span></div>
+                <div class="team-score">T2: <span id="s2">0</span></div>
+                <div class="team-score">T3: <span id="s3">0</span></div>
+                <div class="team-score">T4: <span id="s4">0</span></div>
+            </div>
+            <button onclick="addPoint(1)">T1 +1</button>
+            <button onclick="addPoint(2)">T2 +1</button>
+            <button onclick="addPoint(3)">T3 +1</button>
+            <button onclick="addPoint(4)">T4 +1</button>
+            <button style="background-color: #ff5252;" onclick="resetScores()">Reset Score</button>
+        </div>
+    </div>
+
+    <div class="game-stage">
+        
+        <div id="status-screen" class="status-overlay">
+            <div id="status-title" class="giant-text">PIRATE ADVENTURE</div>
+            <div id="status-sub" class="sub-text">Press START ROUND below to play!</div>
+        </div>
+
+        <div id="layout-split" class="split-container">
+            <div class="split-box split-left" id="card-holder-left"></div>
+            <div class="split-box">
+                <div class="action-text-box">
+                    <div id="action-title" class="action-title">ACTION NAME</div>
+                    <div id="action-desc" class="action-description">What the kids should do.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="layout-single" class="single-container" style="display: none;">
+            <div id="card-holder-center"></div>
+        </div>
+
+        <div class="action-trigger-zone">
+            <button id="btn-main-action" class="btn-main" onclick="triggerRound()">START ROUND</button>
+        </div>
+
+        <div id="timer-container" class="timer-bar-container">
+            <div id="timer-progress" class="timer-bar"></div>
+        </div>
+    </div>
+
+    <audio id="game-audio-player"></audio>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
