@@ -13,7 +13,8 @@ const TIME_PER_WORD = 40;
 let currentWordIndex = 0;
 let timerInterval = null;
 let timeLeft = 0;
-let studentsPool = [];
+let group1 = []; // Students 1-15
+let group2 = []; // Students 16-33
 
 // Helper function to build the date in "Thursday 26th March 2026" format
 function getFormattedDate() {
@@ -44,7 +45,21 @@ document.getElementById('welcome-subtitle').innerText = currentUnit.title;
 document.getElementById('date-display').innerText = getFormattedDate();
 
 function initStudents() {
-    studentsPool = Array.from({length: 33}, (_, i) => i + 1);
+    group1 = Array.from({length: 15}, (_, i) => i + 1);      // Students 1-15
+    group2 = Array.from({length: 18}, (_, i) => i + 16);     // Students 16-33
+}
+
+// Returns the current pool based on word index (odd words = group1, even words = group2)
+function getStudentPool() {
+    return currentWordIndex % 2 === 0 ? group1 : group2;
+}
+
+// Removes a student from the specified pool
+function setStudentFromPool(pool, student) {
+    const index = pool.indexOf(student);
+    if (index !== -1) {
+        pool.splice(index, 1);
+    }
 }
 
 function showScreen(screenId) {
@@ -147,8 +162,15 @@ function startCheckPhase() {
 }
 
 function rollStudent() {
-    if (studentsPool.length === 0) {
-        initStudents();
+    const pool = getStudentPool();
+    
+    if (pool.length === 0) {
+        // If pool is empty, restore it
+        if (currentWordIndex % 2 === 0) {
+            group1 = Array.from({length: 15}, (_, i) => i + 1);
+        } else {
+            group2 = Array.from({length: 18}, (_, i) => i + 16);
+        }
     }
 
     const display = document.getElementById('student-number');
@@ -160,13 +182,14 @@ function rollStudent() {
 
     let intervalTime = 50;
     let rollInterval = function() {
+        // Show random number from full range (1-33) for scrolling effect
         let tempRandom = Math.floor(Math.random() * 33) + 1;
         display.innerText = tempRandom;
         counter++;
 
         if (counter > 15) {
-            const randomIndex = Math.floor(Math.random() * studentsPool.length);
-            const chosenStudent = studentsPool[randomIndex];
+            const randomIndex = Math.floor(Math.random() * getStudentPool().length);
+            const chosenStudent = getStudentPool()[randomIndex];
             
             display.innerText = chosenStudent;
             display.setAttribute('data-chosen', chosenStudent); 
@@ -182,10 +205,8 @@ function rollStudent() {
 
 function confirmStudent() {
     const chosen = parseInt(document.getElementById('student-number').getAttribute('data-chosen'));
-    const indexInPool = studentsPool.indexOf(chosen);
-    if (indexInPool !== -1) {
-        studentsPool.splice(indexInPool, 1);
-    }
+    const pool = getStudentPool();
+    setStudentFromPool(pool, chosen);
     
     showCheckWordScreen();
 }
