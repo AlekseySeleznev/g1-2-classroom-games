@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Guessing</title>
+    <!-- Connecting the shared CSS file -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <a href="index.html" class="btn-back">⬅ Back</a>
+        
+        <h1 id="question">Is this a ...?</h1>
+        <div id="item-emoji">🍎</div>
+        <div id="feedback"></div>
+        
+        <div class="buttons" id="answer-buttons">
+            <button id="btn-yes">Yes, it is</button>
+            <button id="btn-no">No, it isn't</button>
+        </div>
+
+        <button id="btn-next">Next</button>
+    </div>
+
+    <!-- Connecting the specific JS logic for this game -->
+    <script src="js/shadow.js"></script>
+</body>
+</html>

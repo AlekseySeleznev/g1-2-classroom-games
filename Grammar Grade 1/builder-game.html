@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Builder</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <a href="index.html" class="btn-back">⬅ Back</a>
+        
+        <div class="instruction" id="instruction-text">Make a question!</div>
+        <div id="item-emoji" style="filter: brightness(1);">🤖</div>
+        
+        <p>Sentence:</p>
+        <div id="drop-zone" class="zone"></div>
+        
+        <p>Click the words in the right order:</p>
+        <div id="word-bank" class="zone"></div>
+
+        <div id="feedback"></div>
+        <button id="btn-next">Next</button>
+    </div>
+
+    <script src="js/builder.js"></script>
+</body>
+</html>
