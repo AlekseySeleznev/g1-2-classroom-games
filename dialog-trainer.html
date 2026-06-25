@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dialog Trainer — F&F2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #1a1a2e;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .phase { width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .phase { display: none; }
+  .phase.active { display: flex; }
+
+  /* ══ PHASE 1: RANDOMIZER ══ */
+  #phase-random { gap: 36px; }
+
+  #phase-random h1 {
+    font-size: 2.4rem;
+    letter-spacing: 2px;
+    color: #e2b96f;
+    text-transform: uppercase;
+  }
+
+  .cards-row { display: flex; gap: 80px; align-items: center; }
+
+  .player-card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+  .player-label { font-size: 1.6rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .girl-label { color: #ff85c1; }
+  .boy-label  { color: #85c1ff; }
+
+  .number-bubble {
+    width: 220px; height: 220px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 6.5rem; font-weight: 900;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    transition: transform 0.15s ease;
+    position: relative; overflow: hidden;
+  }
+  .number-bubble::after {
+    content: ''; position: absolute; top: 10%; left: 15%;
+    width: 40%; height: 30%; background: rgba(255,255,255,0.2);
+    border-radius: 50%; transform: rotate(-30deg);
+  }
+  .girl-bubble { background: radial-gradient(circle at 35% 35%, #ff9ed2, #d63384); color: #fff; }
+  .boy-bubble  { background: radial-gradient(circle at 35% 35%, #74b9ff, #0056b3); color: #fff; }
+
+  .number-bubble.pop { animation: pop 0.35s ease; }
+  @keyframes pop {
+    0%  { transform: scale(1); }
+    40% { transform: scale(1.18); }
+    70% { transform: scale(0.92); }
+    100%{ transform: scale(1); }
+  }
+
+  .used-count { font-size: 0.9rem; color: #aaa; }
+
+  .reroll-btn {
+    padding: 13px 32px; font-size: 1.1rem; font-weight: 700;
+    border: none; border-radius: 50px; cursor: pointer;
+    letter-spacing: 1px; text-transform: uppercase;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  .reroll-btn:active { transform: scale(0.95); }
+  .reroll-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .girl-btn { background: #ff85c1; color: #fff; }
+  .boy-btn  { background: #85c1ff; color: #fff; }
+
+  .divider { width: 4px; height: 180px; background: linear-gradient(to bottom, transparent, #e2b96f, transparent); border-radius: 4px; }
+
+  #start-dialog-btn {
+    padding: 18px 60px; font-size: 1.5rem; font-weight: 700;
+    background: linear-gradient(135deg, #e2b96f, #c8860a);
+    color: #1a1a2e; border: none; border-radius: 50px; cursor: pointer;
+    letter-spacing: 2px; text-transform: uppercase;
+    box-shadow: 0 6px 30px rgba(226,185,111,0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  #start-dialog-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(226,185,111,0.5); }
+  #start-dialog-btn:active { transform: scale(0.97); }
+
+  #random-dialog-btn {
+    padding: 18px 36px; font-size: 1.5rem; font-weight: 700;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    color: #fff; border: none; border-radius: 50px; cursor: pointer;
+    letter-spacing: 2px; text-transform: uppercase;
+    box-shadow: 0 6px 30px rgba(167,139,250,0.35);
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  #random-dialog-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(167,139,250,0.5); }
+  #random-dialog-btn:active { transform: scale(0.97); }
+
+  .reset-pool-btn {
+    background: none; border: 1px solid #555; color: #888;
+    padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .reset-pool-btn:hover { border-color: #aaa; color: #ccc; }
+
+  /* ══ PHASE 2: DIALOG PICKER ══ */
+  #phase-picker { gap: 28px; padding: 40px; }
+
+  #phase-picker h2 {
+    font-size: 1.8rem; color: #e2b96f; letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  .picker-pair-label { font-size: 1.1rem; color: #aaa; }
+
+  .picker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  .picker-card {
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 18px 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .picker-card:hover { background: rgba(226,185,111,0.12); border-color: #e2b96f; transform: translateY(-3px); }
+
+  .picker-emoji { font-size: 2rem; }
+  .picker-topic { font-size: 1rem; font-weight: 700; color: #fff; line-height: 1.3; }
+  .picker-lines { font-size: 0.78rem; color: #888; }
+
+  .picker-random-btn {
+    padding: 14px 44px; font-size: 1.15rem; font-weight: 700;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    color: #fff; border: none; border-radius: 50px; cursor: pointer;
+    letter-spacing: 1px; text-transform: uppercase;
+    transition: transform 0.1s;
+  }
+  .picker-random-btn:active { transform: scale(0.96); }
+
+  .picker-back-btn {
+    background: none; border: 1px solid #555; color: #888;
+    padding: 8px 22px; border-radius: 20px; cursor: pointer; font-size: 0.9rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .picker-back-btn:hover { border-color: #aaa; color: #ccc; }
+
+  /* ══ PHASE 3: DIALOG VIEW ══ */
+  #phase-dialog { gap: 24px; padding: 36px; }
+
+  .dialog-header { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .dialog-pair { font-size: 1.4rem; color: #e2b96f; font-weight: 700; }
+  .dialog-topic-badge {
+    font-size: 1rem; color: #aaa;
+    background: rgba(255,255,255,0.07);
+    padding: 6px 18px; border-radius: 20px;
+  }
+
+  .dialog-box {
+    width: 100%; max-width: 900px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 24px; padding: 30px 40px;
+    display: flex; flex-direction: column; gap: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    overflow-y: auto; max-height: 62vh;
+  }
+
+  .line {
+    display: flex; align-items: flex-start; gap: 18px;
+    padding: 14px 18px; border-radius: 16px;
+    transition: background 0.2s, transform 0.12s;
+    cursor: pointer;
+  }
+  .line:hover { transform: scale(1.01); }
+  .line.girl-line { background: rgba(255,133,193,0.11); }
+  .line.boy-line  { background: rgba(133,193,255,0.11); }
+  .line.highlight.girl-line { background: rgba(255,133,193,0.30); box-shadow: 0 0 0 2px #ff85c1; }
+  .line.highlight.boy-line  { background: rgba(133,193,255,0.30); box-shadow: 0 0 0 2px #85c1ff; }
+
+  .speaker-badge {
+    min-width: 62px; height: 62px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.35rem; font-weight: 900; flex-shrink: 0;
+  }
+  .girl-badge { background: radial-gradient(circle at 35% 35%, #ff9ed2, #d63384); color: #fff; }
+  .boy-badge  { background: radial-gradient(circle at 35% 35%, #74b9ff, #0056b3); color: #fff; }
+
+  .line-text { font-size: 1.75rem; line-height: 1.4; font-weight: 600; align-self: center; }
+  .girl-line .line-text { color: #ffb8dd; }
+  .boy-line  .line-text { color: #b8d8ff; }
+
+  .dialog-controls { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+  .ctrl-btn {
+    padding: 13px 30px; font-size: 1rem; font-weight: 700;
+    border: none; border-radius: 50px; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 1px;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  .ctrl-btn:active { transform: scale(0.95); }
+
+  #choose-btn   { background: linear-gradient(135deg, #e2b96f, #c8860a); color: #1a1a2e; }
+  #swap-btn     { background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff; }
+  #next-dlg-btn { background: linear-gradient(135deg, #6ee7b7, #059669); color: #fff; }
+  #back-to-rand { background: rgba(255,255,255,0.09); color: #ccc; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ PHASE 1: RANDOMIZER ══════════════════ -->
+<div id="phase-random" class="phase active">
+  <h1>🎲 Pick your pair</h1>
+
+  <div class="cards-row">
+    <div class="player-card">
+      <div class="player-label girl-label">👧 Girl</div>
+      <div class="number-bubble girl-bubble" id="girl-num">—</div>
+      <div class="used-count" id="girl-used">0 / 17 used</div>
+      <button class="reroll-btn girl-btn" id="girl-reroll" onclick="reroll('girl')">🔄 Reroll</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="player-card">
+      <div class="player-label boy-label">👦 Boy</div>
+      <div class="number-bubble boy-bubble" id="boy-num">—</div>
+      <div class="used-count" id="boy-used">0 / 16 used</div>
+      <button class="reroll-btn boy-btn" id="boy-reroll" onclick="reroll('boy')">🔄 Reroll</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;align-items:center;">
+    <button id="start-dialog-btn" onclick="goToPicker()">📚 Choose Dialog</button>
+    <button id="random-dialog-btn" onclick="goToRandomDialog()">🎲 Random</button>
+  </div>
+  <button class="reset-pool-btn" onclick="resetPools()">↺ Reset all numbers</button>
+</div>
+
+<!-- ══════════════════ PHASE 2: PICKER ══════════════════ -->
+<div id="phase-picker" class="phase">
+  <h2>📚 Choose a dialog</h2>
+  <div class="picker-pair-label" id="picker-pair"></div>
+
+  <div class="picker-grid" id="picker-grid"></div>
+
+  <div style="display:flex;gap:16px;align-items:center;">
+    <button class="picker-back-btn" onclick="showPhase('phase-random')">← Back</button>
+    <button class="picker-random-btn" onclick="pickRandom()">🎲 Random dialog</button>
+  </div>
+</div>
+
+<!-- ══════════════════ PHASE 3: DIALOG VIEW ══════════════════ -->
+<div id="phase-dialog" class="phase">
+  <div class="dialog-header">
+    <div class="dialog-pair" id="pair-label"></div>
+    <div class="dialog-topic-badge" id="topic-label"></div>
+  </div>
+
+  <div class="dialog-box" id="dialog-box"></div>
+
+  <div class="dialog-controls">
+    <button class="ctrl-btn" id="back-to-rand" onclick="showPhase('phase-random')">⌂ Home</button>
+    <button class="ctrl-btn" id="choose-btn" onclick="showPhase('phase-picker')">📚 Choose</button>
+    <button class="ctrl-btn" id="swap-btn" onclick="swapRoles()">⇄ Swap</button>
+    <button class="ctrl-btn" id="next-dlg-btn" onclick="nextDialog()">Next →</button>
+  </div>
+</div>
+
+<script>
+// ── POOLS ──────────────────────────────────────────────────────
+const girlPool = { min: 17, max: 33 };
+const boyPool  = { min: 1,  max: 16 };
+let girlUsed = new Set(), boyUsed = new Set();
+let girlCurrent = null, boyCurrent = null;
+
+function pickFrom(pool, usedSet) {
+  const available = [];
+  for (let n = pool.min; n <= pool.max; n++)
+    if (!usedSet.has(n)) available.push(n);
+  return available.length ? available[Math.floor(Math.random() * available.length)] : null;
+}
+
+function reroll(side) {
+  if (side === 'girl') {
+    const n = pickFrom(girlPool, girlUsed);
+    if (n === null) return;
+    if (girlCurrent !== null) girlUsed.add(girlCurrent);
+    girlCurrent = n;
+    animateBubble('girl-num', n);
+    document.getElementById('girl-used').textContent = `${girlUsed.size} / 17 used`;
+    document.getElementById('girl-reroll').disabled = (17 - girlUsed.size - 1) <= 0;
+  } else {
+    const n = pickFrom(boyPool, boyUsed);
+    if (n === null) return;
+    if (boyCurrent !== null) boyUsed.add(boyCurrent);
+    boyCurrent = n;
+    animateBubble('boy-num', n);
+    document.getElementById('boy-used').textContent = `${boyUsed.size} / 16 used`;
+    document.getElementById('boy-reroll').disabled = (16 - boyUsed.size - 1) <= 0;
+  }
+}
+
+function animateBubble(id, n) {
+  const el = document.getElementById(id);
+  el.textContent = n;
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+
+function resetPools() {
+  girlUsed.clear(); boyUsed.clear();
+  girlCurrent = null; boyCurrent = null;
+  document.getElementById('girl-num').textContent = '—';
+  document.getElementById('boy-num').textContent = '—';
+  document.getElementById('girl-used').textContent = '0 / 16 used';
+  document.getElementById('boy-used').textContent = '0 / 17 used';
+  document.getElementById('girl-reroll').disabled = false;
+  document.getElementById('boy-reroll').disabled = false;
+}
+
+// ── DIALOGS ────────────────────────────────────────────────────
+const dialogs = [
+  {
+    emoji: '👋',
+    topic: "Greetings",
+    lines: [
+      { role: 'A', text: "Hello! What's your name?" },
+      { role: 'B', text: "Hi! I'm Sam. What's your name?" },
+      { role: 'A', text: "I'm Lily. How are you?" },
+      { role: 'B', text: "I'm fine, thank you! And you?" },
+      { role: 'A', text: "I'm very well, thanks. Goodbye!" },
+      { role: 'B', text: "Bye bye!" },
+    ]
+  },
+  {
+    emoji: '🎒',
+    topic: "School objects",
+    lines: [
+      { role: 'A', text: "What's this?" },
+      { role: 'B', text: "It's a pencil. What color is it?" },
+      { role: 'A', text: "It's yellow. Have you got a ruler?" },
+      { role: 'B', text: "Yes, I have. It's in my bag." },
+      { role: 'A', text: "Have you got a red pen?" },
+      { role: 'B', text: "No, I haven't. I've got a blue pen." },
+    ]
+  },
+  {
+    emoji: '👨‍👩‍👧',
+    topic: "My family",
+    lines: [
+      { role: 'A', text: "Have you got a brother?" },
+      { role: 'B', text: "Yes, I have. His name is Tom." },
+      { role: 'A', text: "Have you got a sister?" },
+      { role: 'B', text: "No, I haven't. Have you got a sister?" },
+      { role: 'A', text: "Yes! Her name is Anna. She's seven." },
+      { role: 'B', text: "How many people are in your family?" },
+      { role: 'A', text: "Four. Mom, dad, Anna, and me!" },
+    ]
+  },
+  {
+    emoji: '🌈',
+    topic: "Colors & numbers",
+    lines: [
+      { role: 'A', text: "How many books have you got?" },
+      { role: 'B', text: "I've got three books. One is red." },
+      { role: 'A', text: "What color are the other two?" },
+      { role: 'B', text: "They're blue and green. Do you like green?" },
+      { role: 'A', text: "Yes, I do! It's my favorite color." },
+      { role: 'B', text: "My favorite color is orange." },
+    ]
+  },
+  {
+    emoji: '🏫',
+    topic: "At school",
+    lines: [
+      { role: 'A', text: "Stand up, please!" },
+      { role: 'B', text: "Ok! … Can I sit down now?" },
+      { role: 'A', text: "Yes, sit down. Open your book, please." },
+      { role: 'B', text: "Which page?" },
+      { role: 'A', text: "Page twelve. Look at the picture." },
+      { role: 'B', text: "I can see a bag, a pencil, and a ruler!" },
+    ]
+  },
+  {
+    emoji: '🎽',
+    topic: "My things",
+    lines: [
+      { role: 'A', text: "Excuse me, is this your bag?" },
+      { role: 'B', text: "Yes, it is. Thank you!" },
+      { role: 'A', text: "Is this your pencil case?" },
+      { role: 'B', text: "No, it isn't. My pencil case is pink." },
+      { role: 'A', text: "Oh! It's my pencil case! It's purple." },
+      { role: 'B', text: "Purple is nice. What's in it?" },
+      { role: 'A', text: "Two pens, a pencil, and a rubber!" },
+    ]
+  },
+  {
+    emoji: '🦕',
+    topic: "Jurassic World trip",
+    lines: [
+      { role: 'A', text: "Did you go on the school trip on Tuesday?" },
+      { role: 'B', text: "Yes! We went to Jurassic World. It was amazing!" },
+      { role: 'A', text: "What did you see first?" },
+      { role: 'B', text: "We walked through big gates. The park looked like a jungle!" },
+      { role: 'A', text: "Were there real dinosaurs?" },
+      { role: 'B', text: "Yes! We saw a Brachiosaurus. It was as tall as a tree!" },
+      { role: 'A', text: "Wow! What was your favorite part?" },
+      { role: 'B', text: "The giant dinosaur! It was so tall and so cool!" },
+    ]
+  },
+  {
+    emoji: '🐶',
+    topic: "My pet",
+    lines: [
+      { role: 'A', text: "Have you got a pet?" },
+      { role: 'B', text: "Yes! I've got a dog. His name is Max." },
+      { role: 'A', text: "Is he big or small?" },
+      { role: 'B', text: "He's small and very fluffy. Have you got a pet?" },
+      { role: 'A', text: "No, I haven't. But I want a cat!" },
+      { role: 'B', text: "Cats are great! What color do you want?" },
+      { role: 'A', text: "I want an orange one. Orange is my favorite color!" },
+    ]
+  },
+  {
+    emoji: '🍎',
+    topic: "Food I like",
+    lines: [
+      { role: 'A', text: "Do you like apples?" },
+      { role: 'B', text: "Yes, I do! I love apples. Do you like bananas?" },
+      { role: 'A', text: "No, I don't. I don't like bananas." },
+      { role: 'B', text: "What food do you like?" },
+      { role: 'A', text: "I like pizza and sandwiches!" },
+      { role: 'B', text: "Me too! Pizza is my favorite food." },
+    ]
+  },
+  {
+    emoji: '⚽',
+    topic: "I can / I can't",
+    lines: [
+      { role: 'A', text: "Can you swim?" },
+      { role: 'B', text: "Yes, I can! Can you ride a bike?" },
+      { role: 'A', text: "No, I can't. But I can play football!" },
+      { role: 'B', text: "Cool! Can you jump rope?" },
+      { role: 'A', text: "Yes, I can. Can you draw?" },
+      { role: 'B', text: "Yes, I can draw very well!" },
+    ]
+  },
+  {
+    emoji: '🌤️',
+    topic: "The weather",
+    lines: [
+      { role: 'A', text: "What's the weather like today?" },
+      { role: 'B', text: "It's sunny and warm! Do you like sunny days?" },
+      { role: 'A', text: "Yes, I do! I don't like rainy days." },
+      { role: 'B', text: "Really? I like rain! I jump in puddles!" },
+      { role: 'A', text: "Ha ha! What's the weather like in winter?" },
+      { role: 'B', text: "It's cold and sometimes snowy. I love snow!" },
+    ]
+  },
+  {
+    emoji: '🛍️',
+    topic: "At the shop",
+    lines: [
+      { role: 'A', text: "Hello! Can I help you?" },
+      { role: 'B', text: "Yes, please. I'd like a red pencil case." },
+      { role: 'A', text: "Here you are. Anything else?" },
+      { role: 'B', text: "How much is this ruler?" },
+      { role: 'A', text: "It's two pounds." },
+      { role: 'B', text: "Ok! I'd like the ruler too, please." },
+      { role: 'A', text: "That's four pounds altogether. Thank you!" },
+    ]
+  },
+  {
+    emoji: '🌳',
+    topic: "At the park",
+    lines: [
+      { role: 'A', text: "Do you want to play in the park?" },
+      { role: 'B', text: "Yes! I love the park. Let's go to the swings!" },
+      { role: 'A', text: "Ok! Can you see the big tree over there?" },
+      { role: 'B', text: "Yes! Let's climb it!" },
+      { role: 'A', text: "I can't climb trees. Can you?" },
+      { role: 'B', text: "Yes, I can! Come on, I'll help you!" },
+    ]
+  },
+  {
+    emoji: '📅',
+    topic: "Days of the week",
+    lines: [
+      { role: 'A', text: "What day is it today?" },
+      { role: 'B', text: "It's Wednesday! Tomorrow is Thursday." },
+      { role: 'A', text: "Do you have English on Thursday?" },
+      { role: 'B', text: "Yes! And on Monday too. Do you like English?" },
+      { role: 'A', text: "Yes, I love English! What's your favorite day?" },
+      { role: 'B', text: "Saturday! No school and I play all day!" },
+    ]
+  },
+  {
+    emoji: '🛏️',
+    topic: "My bedroom",
+    lines: [
+      { role: 'A', text: "What's in your bedroom?" },
+      { role: 'B', text: "I've got a bed, a desk, and lots of toys!" },
+      { role: 'A', text: "What toys have you got?" },
+      { role: 'B', text: "I've got a robot, two cars, and a ball." },
+      { role: 'A', text: "Wow! Have you got a teddy bear?" },
+      { role: 'B', text: "Yes, I have! It's brown and it's on my bed." },
+    ]
+  },
+  {
+    emoji: '🐘',
+    topic: "Favorite animals",
+    lines: [
+      { role: 'A', text: "What's your favorite animal?" },
+      { role: 'B', text: "I love elephants! They're so big. What about you?" },
+      { role: 'A', text: "I like dolphins. They can swim and jump!" },
+      { role: 'B', text: "Cool! Are dolphins big or small?" },
+      { role: 'A', text: "They're not very big. They're grey and white." },
+      { role: 'B', text: "I want to see a dolphin one day!" },
+    ]
+  },
+];
+
+// ── NAVIGATION ──────────────────────────────────────────────────
+function showPhase(id) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goToRandomDialog() {
+  if (girlCurrent === null) reroll('girl');
+  if (boyCurrent  === null) reroll('boy');
+  openDialog(Math.floor(Math.random() * dialogs.length));
+}
+
+function goToPicker() {
+  if (girlCurrent === null) reroll('girl');
+  if (boyCurrent  === null) reroll('boy');
+  document.getElementById('picker-pair').textContent =
+    `👧 #${girlCurrent}  —  👦 #${boyCurrent}`;
+  buildPickerGrid();
+  showPhase('phase-picker');
+}
+
+function buildPickerGrid() {
+  const grid = document.getElementById('picker-grid');
+  grid.innerHTML = '';
+  dialogs.forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'picker-card';
+    card.innerHTML = `
+      <div class="picker-emoji">${d.emoji}</div>
+      <div class="picker-topic">${d.topic}</div>
+      <div class="picker-lines">${d.lines.length} lines</div>`;
+    card.onclick = () => openDialog(i);
+    grid.appendChild(card);
+  });
+}
+
+function pickRandom() {
+  openDialog(Math.floor(Math.random() * dialogs.length));
+}
+
+// ── DIALOG VIEW ─────────────────────────────────────────────────
+let currentDialogIdx = 0;
+let swapped = false;
+let highlightedLine = -1;
+
+function openDialog(idx) {
+  currentDialogIdx = idx;
+  swapped = false;
+  highlightedLine = -1;
+  renderDialog();
+  showPhase('phase-dialog');
+}
+
+function renderDialog() {
+  const d = dialogs[currentDialogIdx];
+  document.getElementById('pair-label').textContent =
+    `👧 #${girlCurrent}  vs  👦 #${boyCurrent}`;
+  document.getElementById('topic-label').textContent = d.emoji + ' ' + d.topic;
+
+  const box = document.getElementById('dialog-box');
+  box.innerHTML = '';
+
+  d.lines.forEach((line, idx) => {
+    const isGirl = swapped ? (line.role === 'B') : (line.role === 'A');
+    const div = document.createElement('div');
+    div.className = `line ${isGirl ? 'girl-line' : 'boy-line'}${idx === highlightedLine ? ' highlight' : ''}`;
+    div.onclick = () => { highlightedLine = (highlightedLine === idx) ? -1 : idx; renderDialog(); };
+
+    const badge = document.createElement('div');
+    badge.className = `speaker-badge ${isGirl ? 'girl-badge' : 'boy-badge'}`;
+    badge.textContent = isGirl ? `#${girlCurrent}` : `#${boyCurrent}`;
+
+    const text = document.createElement('div');
+    text.className = 'line-text';
+    text.textContent = line.text;
+
+    div.appendChild(badge);
+    div.appendChild(text);
+    box.appendChild(div);
+  });
+}
+
+function nextDialog() {
+  currentDialogIdx = (currentDialogIdx + 1) % dialogs.length;
+  highlightedLine = -1;
+  swapped = false;
+  renderDialog();
+}
+
+function swapRoles() {
+  swapped = !swapped;
+  highlightedLine = -1;
+  renderDialog();
+}
+
+// init
+reroll('girl');
+reroll('boy');
+</script>
+</body>
+</html>
