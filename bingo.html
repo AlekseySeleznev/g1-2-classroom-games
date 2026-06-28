@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Bingo 🎉</title>
+<style>
+/* ===================== RESET & BASE ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --card: #0f3460;
+  --accent1: #e94560;
+  --accent2: #f5a623;
+  --accent3: #4ade80;
+  --accent4: #60a5fa;
+  --text: #f0f0f0;
+  --muted: #a0aec0;
+  --radius: 16px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', 'Arial Rounded MT Bold', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  user-select: none;
+}
+
+/* ===================== SCREENS ===================== */
+.screen { display: none; min-height: 100vh; padding: 20px; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ===================== START SCREEN ===================== */
+#screen-start {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  gap: 20px;
+  padding: 30px 20px;
+}
+
+.logo {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  text-align: center;
+  background: linear-gradient(90deg, #f5a623, #e94560, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -2px;
+}
+.logo-sub { font-size: 1.1rem; color: var(--muted); text-align: center; margin-top: -10px; }
+
+.settings-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 650px;
+  box-shadow: var(--shadow);
+}
+
+.settings-card h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+/* Grid mode buttons */
+.grid-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+.grid-btn {
+  flex: 1; min-width: 130px;
+  padding: 16px 10px;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  line-height: 1.3;
+}
+.grid-btn:hover { border-color: var(--accent2); transform: translateY(-2px); }
+.grid-btn.selected { border-color: var(--accent2); background: rgba(245,166,35,.15); }
+.grid-btn .grid-label { font-size: 1.6rem; display: block; }
+.grid-btn .grid-info { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+
+/* Timer */
+.timer-presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.preset-btn {
+  padding: 8px 14px;
+  border: 2px solid var(--card);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.preset-btn:hover, .preset-btn.selected { border-color: var(--accent4); background: rgba(96,165,250,.15); }
+
+.timer-input-row { display: flex; align-items: center; gap: 10px; }
+.timer-input-row input {
+  width: 80px;
+  padding: 10px;
+  border: 2px solid var(--card);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+.timer-input-row input:focus { outline: none; border-color: var(--accent4); }
+.timer-input-row label { color: var(--muted); }
+
+/* Word set */
+.word-set-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.ws-btn {
+  padding: 10px 8px;
+  border: 2px solid var(--card);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+}
+.ws-btn:hover { border-color: var(--accent3); }
+.ws-btn.selected { border-color: var(--accent3); background: rgba(74,222,128,.15); }
+
+/* Custom word list */
+#custom-words-area {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 2px solid var(--card);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  resize: vertical;
+  margin-top: 10px;
+  display: none;
+}
+#custom-words-area:focus { outline: none; border-color: var(--accent3); }
+
+/* Toggles */
+.toggle-row { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+.toggle-row label { font-size: 0.95rem; cursor: pointer; flex: 1; }
+.toggle {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; inset: 0;
+  background: #333;
+  border-radius: 28px;
+  cursor: pointer;
+  transition: .3s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 22px; height: 22px;
+  left: 3px; top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: .3s;
+}
+.toggle input:checked + .toggle-slider { background: var(--accent3); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+/* Action buttons */
+.action-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 650px; }
+.btn-primary {
+  padding: 18px 40px;
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(233,69,96,.4);
+  transition: all .2s;
+  letter-spacing: 1px;
+}
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(233,69,96,.5); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  padding: 14px 24px;
+  background: var(--surface);
+  border: 2px solid var(--card);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-secondary:hover { border-color: var(--accent4); background: rgba(96,165,250,.1); }
+
+/* ===================== PRINT SCREEN ===================== */
+#screen-print {
+  background: white;
+  color: #000;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.print-grid {
+  display: grid;
+  gap: 4px;
+  border: 3px solid #000;
+}
+.print-cell {
+  width: 100px;
+  height: 80px;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.print-free {
+  background: #eee;
+  font-size: 1.2rem;
+}
+.print-controls {
+  display: flex;
+  gap: 12px;
+}
+@media print {
+  .print-controls { display: none; }
+  #screen-print { padding: 0; }
+}
+
+/* ===================== PHASE 1 SCREEN ===================== */
+#screen-phase1 {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 100%);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+}
+
+.phase-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 900px;
+}
+.phase-badge {
+  background: var(--accent4);
+  color: #000;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.progress-text {
+  font-size: 1rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.btn-small {
+  padding: 8px 16px;
+  border: 2px solid var(--muted);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-small:hover { border-color: var(--text); color: var(--text); }
+
+/* Big word display */
+.word-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 16px;
+}
+.word-emoji {
+  font-size: clamp(5rem, 15vw, 10rem);
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.5));
+  animation: popIn .3s ease-out;
+}
+.word-text {
+  font-size: clamp(3rem, 10vw, 8rem);
+  font-weight: 900;
+  letter-spacing: -2px;
+  text-align: center;
+  background: linear-gradient(135deg, #ffffff, #e2e8f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: popIn .3s ease-out;
+  line-height: 1.1;
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Hint */
+.hint-box {
+  background: rgba(245,166,35,.15);
+  border: 2px solid var(--accent2);
+  border-radius: 12px;
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent2);
+  max-width: 700px;
+  width: 100%;
+}
+
+/* Timer bar */
+.timer-area {
+  width: 100%;
+  max-width: 700px;
+}
+.timer-countdown {
+  font-size: 2.5rem;
+  font-weight: 900;
+  text-align: center;
+  color: var(--accent2);
+  margin-bottom: 8px;
+}
+.timer-bar-bg {
+  width: 100%;
+  height: 16px;
+  background: rgba(255,255,255,.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.timer-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent3), var(--accent2));
+  border-radius: 8px;
+  transition: width .1s linear;
+}
+
+/* Phase 1 controls */
+.phase1-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 700px;
+}
+.ctrl-btn {
+  padding: 14px 22px;
+  border: 2px solid rgba(255,255,255,.2);
+  border-radius: 12px;
+  background: rgba(255,255,255,.07);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ctrl-btn:hover { border-color: rgba(255,255,255,.5); background: rgba(255,255,255,.12); }
+.ctrl-btn.big { font-size: 1.2rem; padding: 16px 30px; }
+.ctrl-btn.danger { border-color: rgba(233,69,96,.4); color: var(--accent1); }
+.ctrl-btn.danger:hover { border-color: var(--accent1); background: rgba(233,69,96,.15); }
+
+/* ===================== PHASE 2 SCREEN ===================== */
+#screen-phase2 {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 100%);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+}
+
+.phase2-top {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.current-word-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255,255,255,.04);
+  border-radius: 20px;
+  padding: 30px 20px;
+  min-height: 280px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color .2s;
+}
+.current-word-panel:hover { border-color: rgba(255,255,255,.15); }
+.current-word-panel .word-emoji { font-size: clamp(3.5rem, 8vw, 6rem); }
+.current-word-panel .word-text  { font-size: clamp(2.5rem, 6vw, 5rem); }
+.click-hint { font-size: 0.8rem; color: var(--muted); }
+
+/* Called words board */
+.called-board {
+  width: 340px;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.04);
+  border-radius: 20px;
+  padding: 16px;
+}
+.called-board h3 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.called-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.called-chip {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(255,255,255,.06);
+  color: var(--muted);
+  border: 1.5px solid rgba(255,255,255,.08);
+  transition: all .3s;
+}
+.called-chip.called {
+  background: rgba(74,222,128,.2);
+  color: var(--accent3);
+  border-color: var(--accent3);
+}
+
+.phase2-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.remaining-text {
+  font-size: 1rem;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 600;
+}
+
+/* BINGO! overlay */
+#bingo-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+#bingo-overlay.show { display: flex; }
+.bingo-text {
+  font-size: clamp(5rem, 15vw, 12rem);
+  font-weight: 900;
+  animation: bingoPop .5s ease-out;
+  background: linear-gradient(90deg, #f5a623, #e94560, #60a5fa, #4ade80);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+@keyframes bingoPop {
+  from { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+/* ===================== HELPERS ===================== */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255,255,255,.08);
+  margin: 4px 0;
+}
+
+.settings-section { margin-bottom: 20px; }
+.settings-section:last-child { margin-bottom: 0; }
+
+.voice-warning {
+  font-size: 0.8rem;
+  color: var(--accent1);
+  margin-top: 4px;
+  display: none;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 700px) {
+  .phase2-top { flex-direction: column; }
+  .called-board { width: 100%; }
+  .word-text { font-size: clamp(2.5rem, 12vw, 5rem) !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== START SCREEN ==================== -->
+<div id="screen-start" class="screen active">
+  <div class="logo">🎱 English BINGO</div>
+  <div class="logo-sub">Classroom game for English lessons</div>
+
+  <div class="settings-card">
+    <div class="settings-section">
+      <h2>Grid size</h2>
+      <div class="grid-buttons">
+        <button class="grid-btn" data-mode="4x4" onclick="selectMode('4x4')">
+          <span class="grid-label">4×4</span>
+          <span class="grid-info">Grades 2–3 · 16 words · no FREE</span>
+        </button>
+        <button class="grid-btn selected" data-mode="5x5" onclick="selectMode('5x5')">
+          <span class="grid-label">5×5</span>
+          <span class="grid-info">Grades 4–5 · 24 words · FREE center</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="settings-section">
+      <h2>Time per word (writing phase)</h2>
+      <div class="timer-presets">
+        <button class="preset-btn" onclick="setTimer(20)">Grades 1–2 · 20 sec</button>
+        <button class="preset-btn selected" onclick="setTimer(15)">Grade 3 · 15 sec</button>
+        <button class="preset-btn" onclick="setTimer(12)">Grades 4–5 · 12 sec</button>
+      </div>
+      <div class="timer-input-row">
+        <input type="number" id="timer-seconds" value="15" min="5" max="120" onchange="onTimerInput()">
+        <label>seconds per word</label>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="settings-section">
+      <h2>Word set</h2>
+      <div class="word-set-list" id="word-set-list"></div>
+      <textarea id="custom-words-area" placeholder="Enter words one per line, e.g.:&#10;cat 🐱&#10;dog 🐶&#10;fish 🐟&#10;&#10;You need at least 24 words (or 16 for 4×4 mode)."></textarea>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="settings-section">
+      <h2>Options</h2>
+      <div class="toggle-row">
+        <label for="tog-speech">🔊 Read words aloud (speech synthesis)</label>
+        <label class="toggle"><input type="checkbox" id="tog-speech" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div id="voice-warning" class="voice-warning">⚠️ No English voice found on this device — speech disabled</div>
+      <div class="toggle-row">
+        <label for="tog-ding">🔔 Ding sound between words</label>
+        <label class="toggle"><input type="checkbox" id="tog-ding" checked><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-btns">
+    <button class="btn-secondary" onclick="showPrint()">🖨️ Print empty grid</button>
+    <button class="btn-primary" onclick="startGame()">▶ START</button>
+  </div>
+</div>
+
+<!-- ==================== PRINT SCREEN ==================== -->
+<div id="screen-print" class="screen">
+  <div class="print-controls">
+    <button class="btn-secondary" style="background:#eee;color:#333;border-color:#ccc" onclick="window.print()">🖨️ Print (Ctrl+P)</button>
+    <button class="btn-secondary" style="background:#eee;color:#333;border-color:#ccc" onclick="showScreen('screen-start')">← Back</button>
+  </div>
+  <div id="print-grid-container"></div>
+</div>
+
+<!-- ==================== PHASE 1 SCREEN ==================== -->
+<div id="screen-phase1" class="screen">
+  <div class="phase-header">
+    <span class="phase-badge">📝 Phase 1 — Writing</span>
+    <span id="ph1-progress" class="progress-text">Word 1 of 24</span>
+    <button class="btn-small" onclick="showScreen('screen-start')">✕ Quit</button>
+  </div>
+
+  <div class="word-display">
+    <div id="ph1-emoji" class="word-emoji">🎯</div>
+    <div id="ph1-word" class="word-text">Ready?</div>
+  </div>
+
+  <div class="hint-box">
+    ✏️ Write this word in <strong>ANY empty box</strong> you like — not in order!
+  </div>
+
+  <div class="timer-area">
+    <div id="ph1-countdown" class="timer-countdown">15</div>
+    <div class="timer-bar-bg">
+      <div id="ph1-bar" class="timer-bar-fill" style="width:100%"></div>
+    </div>
+  </div>
+
+  <div class="phase1-controls">
+    <button class="ctrl-btn" onclick="ph1Prev()" title="← Previous (Arrow Left)">⬅ Back</button>
+    <button class="ctrl-btn big" id="ph1-pause-btn" onclick="ph1TogglePause()" title="Space = Pause/Resume">⏸ Pause</button>
+    <button class="ctrl-btn" onclick="ph1Next()" title="→ Next (Arrow Right)">Next ➡</button>
+    <button class="ctrl-btn" onclick="speakCurrent()" title="R = Repeat">🔊 Repeat</button>
+  </div>
+</div>
+
+<!-- ==================== PHASE 2 SCREEN ==================== -->
+<div id="screen-phase2" class="screen">
+  <div class="phase-header" style="max-width:1100px">
+    <span class="phase-badge">🎲 Phase 2 — Draw!</span>
+    <span id="ph2-remaining" class="remaining-text">24 words left</span>
+    <button class="btn-small" onclick="showScreen('screen-start')">✕ Quit</button>
+  </div>
+
+  <div class="phase2-top">
+    <div class="current-word-panel" id="ph2-word-panel" onclick="speakCurrent()" title="Click to hear the word">
+      <div id="ph2-emoji" class="word-emoji">🎲</div>
+      <div id="ph2-word" class="word-text">Press Space!</div>
+      <div class="click-hint">🔊 Click to repeat</div>
+    </div>
+
+    <div class="called-board">
+      <h3>Called words ✅</h3>
+      <div class="called-grid" id="called-grid"></div>
+    </div>
+  </div>
+
+  <div class="phase2-controls">
+    <button class="ctrl-btn" onclick="speakCurrent()" title="R = Repeat">🔊 Repeat</button>
+    <button class="ctrl-btn big btn-primary" onclick="ph2Next()" title="Space / Arrow Right = Next word" style="background:linear-gradient(135deg,#4ade80,#06b6d4);border:none;color:#000">Next word ➡</button>
+    <button class="ctrl-btn" onclick="ph2NewGame()">🔄 New game</button>
+    <button class="ctrl-btn danger" onclick="showScreen('screen-start')">⬛ Reset</button>
+  </div>
+</div>
+
+<!-- ==================== BINGO OVERLAY ==================== -->
+<div id="bingo-overlay">
+  <div class="bingo-text">🎉 BINGO! 🎉</div>
+  <button class="btn-primary" onclick="document.getElementById('bingo-overlay').classList.remove('show')">✓ Check the card</button>
+</div>
+
+<script>
+/* ======================================================
+   DATA — WORD SETS
+   Each word set has 24 words: { word, emoji }
+   ====================================================== */
+const WORD_SETS = [
+  {
+    name: "Animals 🐾",
+    words: [
+      {word:"cat",emoji:"🐱"},{word:"dog",emoji:"🐶"},{word:"fish",emoji:"🐟"},{word:"bird",emoji:"🐦"},
+      {word:"cow",emoji:"🐮"},{word:"pig",emoji:"🐷"},{word:"duck",emoji:"🦆"},{word:"frog",emoji:"🐸"},
+      {word:"lion",emoji:"🦁"},{word:"bear",emoji:"🐻"},{word:"monkey",emoji:"🐵"},{word:"rabbit",emoji:"🐰"},
+      {word:"elephant",emoji:"🐘"},{word:"tiger",emoji:"🐯"},{word:"horse",emoji:"🐴"},{word:"chicken",emoji:"🐔"},
+      {word:"snake",emoji:"🐍"},{word:"sheep",emoji:"🐑"},{word:"goat",emoji:"🐐"},{word:"mouse",emoji:"🐭"},
+      {word:"panda",emoji:"🐼"},{word:"turtle",emoji:"🐢"},{word:"bee",emoji:"🐝"},{word:"owl",emoji:"🦉"}
+    ]
+  },
+  {
+    name: "Food & Fruit 🍎",
+    words: [
+      {word:"apple",emoji:"🍎"},{word:"banana",emoji:"🍌"},{word:"orange",emoji:"🍊"},{word:"mango",emoji:"🥭"},
+      {word:"grape",emoji:"🍇"},{word:"watermelon",emoji:"🍉"},{word:"strawberry",emoji:"🍓"},{word:"pineapple",emoji:"🍍"},
+      {word:"rice",emoji:"🍚"},{word:"egg",emoji:"🥚"},{word:"bread",emoji:"🍞"},{word:"milk",emoji:"🥛"},
+      {word:"cake",emoji:"🍰"},{word:"fish",emoji:"🐟"},{word:"chicken",emoji:"🍗"},{word:"noodles",emoji:"🍜"},
+      {word:"ice cream",emoji:"🍦"},{word:"cookie",emoji:"🍪"},{word:"carrot",emoji:"🥕"},{word:"tomato",emoji:"🍅"},
+      {word:"corn",emoji:"🌽"},{word:"lemon",emoji:"🍋"},{word:"coconut",emoji:"🥥"},{word:"candy",emoji:"🍬"}
+    ]
+  },
+  {
+    name: "Body & Face 🧍",
+    words: [
+      {word:"head",emoji:"🙂"},{word:"hair",emoji:"💇"},{word:"eye",emoji:"👁️"},{word:"ear",emoji:"👂"},
+      {word:"nose",emoji:"👃"},{word:"mouth",emoji:"👄"},{word:"tooth",emoji:"🦷"},{word:"tongue",emoji:"👅"},
+      {word:"hand",emoji:"✋"},{word:"finger",emoji:"☝️"},{word:"arm",emoji:"💪"},{word:"leg",emoji:"🦵"},
+      {word:"foot",emoji:"🦶"},{word:"knee",emoji:"🩻"},{word:"face",emoji:"😀"},{word:"neck",emoji:"🧣"},
+      {word:"shoulder",emoji:"🤷"},{word:"back",emoji:"🔙"},{word:"tummy",emoji:"🫃"},{word:"toe",emoji:"🦶"},
+      {word:"lip",emoji:"👄"},{word:"chin",emoji:"😄"},{word:"cheek",emoji:"😊"},{word:"brain",emoji:"🧠"}
+    ]
+  },
+  {
+    name: "Colors & Numbers 🔴",
+    words: [
+      {word:"red",emoji:"🔴"},{word:"blue",emoji:"🔵"},{word:"green",emoji:"🟢"},{word:"yellow",emoji:"🟡"},
+      {word:"orange",emoji:"🟠"},{word:"purple",emoji:"🟣"},{word:"pink",emoji:"🩷"},{word:"brown",emoji:"🟤"},
+      {word:"black",emoji:"⚫"},{word:"white",emoji:"⚪"},{word:"grey",emoji:"🩶"},{word:"one",emoji:"1️⃣"},
+      {word:"two",emoji:"2️⃣"},{word:"three",emoji:"3️⃣"},{word:"four",emoji:"4️⃣"},{word:"five",emoji:"5️⃣"},
+      {word:"six",emoji:"6️⃣"},{word:"seven",emoji:"7️⃣"},{word:"eight",emoji:"8️⃣"},{word:"nine",emoji:"9️⃣"},
+      {word:"ten",emoji:"🔟"},{word:"eleven",emoji:"1️⃣1️⃣"},{word:"twelve",emoji:"1️⃣2️⃣"},{word:"thirteen",emoji:"1️⃣3️⃣"}
+    ]
+  },
+  {
+    name: "School ✏️",
+    words: [
+      {word:"pen",emoji:"🖊️"},{word:"pencil",emoji:"✏️"},{word:"book",emoji:"📖"},{word:"bag",emoji:"🎒"},
+      {word:"ruler",emoji:"📏"},{word:"eraser",emoji:"🧽"},{word:"crayon",emoji:"🖍️"},{word:"scissors",emoji:"✂️"},
+      {word:"glue",emoji:"🩹"},{word:"desk",emoji:"🪑"},{word:"chair",emoji:"🪑"},{word:"board",emoji:"📋"},
+      {word:"chalk",emoji:"🖍️"},{word:"marker",emoji:"🖊️"},{word:"paper",emoji:"📄"},{word:"notebook",emoji:"📓"},
+      {word:"bell",emoji:"🔔"},{word:"clock",emoji:"🕐"},{word:"map",emoji:"🗺️"},{word:"globe",emoji:"🌍"},
+      {word:"computer",emoji:"💻"},{word:"teacher",emoji:"👩‍🏫"},{word:"student",emoji:"🧑‍🎓"},{word:"classroom",emoji:"🏫"}
+    ]
+  },
+  {
+    name: "Family 👪",
+    words: [
+      {word:"mother",emoji:"👩"},{word:"father",emoji:"👨"},{word:"sister",emoji:"👧"},{word:"brother",emoji:"👦"},
+      {word:"baby",emoji:"👶"},{word:"grandmother",emoji:"👵"},{word:"grandfather",emoji:"👴"},{word:"aunt",emoji:"👩"},
+      {word:"uncle",emoji:"👨"},{word:"cousin",emoji:"🧒"},{word:"son",emoji:"👦"},{word:"daughter",emoji:"👧"},
+      {word:"family",emoji:"👪"},{word:"parents",emoji:"👫"},{word:"husband",emoji:"🤵"},{word:"wife",emoji:"👰"},
+      {word:"twins",emoji:"👯"},{word:"friend",emoji:"🧑‍🤝‍🧑"},{word:"boy",emoji:"👦"},{word:"girl",emoji:"👧"},
+      {word:"man",emoji:"👨"},{word:"woman",emoji:"👩"},{word:"people",emoji:"👥"},{word:"child",emoji:"🧒"}
+    ]
+  },
+  {
+    name: "Clothes 👕",
+    words: [
+      {word:"shirt",emoji:"👕"},{word:"t-shirt",emoji:"👕"},{word:"dress",emoji:"👗"},{word:"skirt",emoji:"👗"},
+      {word:"pants",emoji:"👖"},{word:"jeans",emoji:"👖"},{word:"shorts",emoji:"🩳"},{word:"shoes",emoji:"👟"},
+      {word:"socks",emoji:"🧦"},{word:"hat",emoji:"🎩"},{word:"cap",emoji:"🧢"},{word:"jacket",emoji:"🧥"},
+      {word:"coat",emoji:"🧥"},{word:"sweater",emoji:"🧶"},{word:"gloves",emoji:"🧤"},{word:"scarf",emoji:"🧣"},
+      {word:"boots",emoji:"👢"},{word:"sandals",emoji:"🩴"},{word:"tie",emoji:"👔"},{word:"belt",emoji:"👔"},
+      {word:"glasses",emoji:"👓"},{word:"bag",emoji:"👜"},{word:"watch",emoji:"⌚"},{word:"umbrella",emoji:"☂️"}
+    ]
+  },
+  {
+    name: "Action Verbs 🏃",
+    words: [
+      {word:"run",emoji:"🏃"},{word:"jump",emoji:"🦘"},{word:"walk",emoji:"🚶"},{word:"swim",emoji:"🏊"},
+      {word:"sit",emoji:"🪑"},{word:"stand",emoji:"🧍"},{word:"sleep",emoji:"😴"},{word:"eat",emoji:"🍽️"},
+      {word:"drink",emoji:"🥤"},{word:"read",emoji:"📖"},{word:"write",emoji:"✍️"},{word:"draw",emoji:"🎨"},
+      {word:"sing",emoji:"🎤"},{word:"dance",emoji:"💃"},{word:"play",emoji:"⚽"},{word:"climb",emoji:"🧗"},
+      {word:"throw",emoji:"🤾"},{word:"catch",emoji:"🧤"},{word:"kick",emoji:"👟"},{word:"clap",emoji:"👏"},
+      {word:"cry",emoji:"😢"},{word:"laugh",emoji:"😄"},{word:"listen",emoji:"👂"},{word:"look",emoji:"👀"}
+    ]
+  },
+  {
+    name: "Weather ☀️",
+    words: [
+      {word:"sun",emoji:"☀️"},{word:"rain",emoji:"🌧️"},{word:"cloud",emoji:"☁️"},{word:"wind",emoji:"💨"},
+      {word:"snow",emoji:"❄️"},{word:"storm",emoji:"⛈️"},{word:"rainbow",emoji:"🌈"},{word:"hot",emoji:"🥵"},
+      {word:"cold",emoji:"🥶"},{word:"warm",emoji:"🌤️"},{word:"cool",emoji:"🌬️"},{word:"wet",emoji:"💧"},
+      {word:"dry",emoji:"🏜️"},{word:"sunny",emoji:"🌞"},{word:"rainy",emoji:"🌧️"},{word:"cloudy",emoji:"☁️"},
+      {word:"windy",emoji:"🌬️"},{word:"snowy",emoji:"☃️"},{word:"fog",emoji:"🌫️"},{word:"ice",emoji:"🧊"},
+      {word:"thunder",emoji:"⚡"},{word:"lightning",emoji:"🌩️"},{word:"umbrella",emoji:"☂️"},{word:"sky",emoji:"🌤️"}
+    ]
+  },
+  {
+    name: "House 🏠",
+    words: [
+      {word:"house",emoji:"🏠"},{word:"door",emoji:"🚪"},{word:"window",emoji:"🪟"},{word:"roof",emoji:"🏚️"},
+      {word:"wall",emoji:"🧱"},{word:"floor",emoji:"🪵"},{word:"table",emoji:"🪑"},{word:"chair",emoji:"🪑"},
+      {word:"bed",emoji:"🛏️"},{word:"sofa",emoji:"🛋️"},{word:"lamp",emoji:"💡"},{word:"clock",emoji:"🕐"},
+      {word:"mirror",emoji:"🪞"},{word:"sink",emoji:"🚿"},{word:"bath",emoji:"🛁"},{word:"shower",emoji:"🚿"},
+      {word:"toilet",emoji:"🚽"},{word:"kitchen",emoji:"🍳"},{word:"bedroom",emoji:"🛏️"},{word:"bathroom",emoji:"🚽"},
+      {word:"garden",emoji:"🌳"},{word:"key",emoji:"🔑"},{word:"stairs",emoji:"🪜"},{word:"TV",emoji:"📺"}
+    ]
+  },
+  {
+    name: "Transport 🚗",
+    words: [
+      {word:"car",emoji:"🚗"},{word:"bus",emoji:"🚌"},{word:"bike",emoji:"🚲"},{word:"train",emoji:"🚆"},
+      {word:"plane",emoji:"✈️"},{word:"boat",emoji:"⛵"},{word:"ship",emoji:"🚢"},{word:"truck",emoji:"🚚"},
+      {word:"taxi",emoji:"🚕"},{word:"motorbike",emoji:"🏍️"},{word:"helicopter",emoji:"🚁"},{word:"rocket",emoji:"🚀"},
+      {word:"scooter",emoji:"🛴"},{word:"van",emoji:"🚐"},{word:"tram",emoji:"🚊"},{word:"subway",emoji:"🚇"},
+      {word:"ambulance",emoji:"🚑"},{word:"police car",emoji:"🚓"},{word:"fire truck",emoji:"🚒"},{word:"tractor",emoji:"🚜"},
+      {word:"ferry",emoji:"⛴️"},{word:"balloon",emoji:"🎈"},{word:"skateboard",emoji:"🛹"},{word:"jeep",emoji:"🚙"}
+    ]
+  }
+];
+
+/* ======================================================
+   STATE
+   ====================================================== */
+let state = {
+  mode: '5x5',          // '4x4' or '5x5'
+  timerSecs: 15,
+  wordSetIndex: 0,      // index in WORD_SETS, or -1 for custom
+  customWords: [],
+  useSpeech: true,
+  useDing: true,
+
+  // game
+  selectedWords: [],    // the words chosen for this game (16 or 24)
+  phase: null,          // 'writing' | 'drawing'
+
+  // phase 1
+  ph1Index: 0,
+  ph1Paused: false,
+  ph1Remaining: 0,      // seconds remaining on current word
+  ph1Timer: null,
+
+  // phase 2
+  ph2Order: [],         // indices into selectedWords, shuffled
+  ph2Step: 0,           // how many have been drawn
+};
+
+/* ======================================================
+   INIT
+   ====================================================== */
+window.addEventListener('DOMContentLoaded', () => {
+  buildWordSetButtons();
+  loadSettings();
+  checkVoice();
+  document.addEventListener('keydown', onKeyDown);
+});
+
+function buildWordSetButtons() {
+  const container = document.getElementById('word-set-list');
+  WORD_SETS.forEach((ws, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ws-btn' + (i === 0 ? ' selected' : '');
+    btn.textContent = ws.name;
+    btn.onclick = () => selectWordSet(i);
+    container.appendChild(btn);
+  });
+  // Custom option
+  const customBtn = document.createElement('button');
+  customBtn.className = 'ws-btn';
+  customBtn.id = 'ws-custom-btn';
+  customBtn.textContent = '✏️ My own list';
+  customBtn.onclick = () => selectWordSet(-1);
+  container.appendChild(customBtn);
+}
+
+/* ======================================================
+   SETTINGS UI
+   ====================================================== */
+function selectMode(m) {
+  state.mode = m;
+  document.querySelectorAll('.grid-btn').forEach(b => b.classList.toggle('selected', b.dataset.mode === m));
+  saveSettings();
+}
+
+function setTimer(s) {
+  state.timerSecs = s;
+  document.getElementById('timer-seconds').value = s;
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('selected', b.textContent.includes(s + ' sec'));
+  });
+  saveSettings();
+}
+
+function onTimerInput() {
+  const v = parseInt(document.getElementById('timer-seconds').value) || 15;
+  state.timerSecs = Math.max(5, Math.min(120, v));
+  document.getElementById('timer-seconds').value = state.timerSecs;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+  saveSettings();
+}
+
+function selectWordSet(idx) {
+  state.wordSetIndex = idx;
+  document.querySelectorAll('.ws-btn').forEach((b, i) => {
+    const isCustom = b.id === 'ws-custom-btn';
+    b.classList.toggle('selected', idx === -1 ? isCustom : i === idx);
+  });
+  document.getElementById('custom-words-area').style.display = idx === -1 ? 'block' : 'none';
+  saveSettings();
+}
+
+/* ======================================================
+   VOICE CHECK
+   ====================================================== */
+function checkVoice() {
+  if (!('speechSynthesis' in window)) {
+    document.getElementById('voice-warning').style.display = 'block';
+    state.useSpeech = false;
+    document.getElementById('tog-speech').checked = false;
+    return;
+  }
+  // Voices load asynchronously
+  const check = () => {
+    const voices = speechSynthesis.getVoices();
+    const eng = voices.find(v => v.lang.startsWith('en'));
+    if (!eng && voices.length > 0) {
+      document.getElementById('voice-warning').style.display = 'block';
+    }
+  };
+  speechSynthesis.onvoiceschanged = check;
+  check();
+}
+
+/* ======================================================
+   SPEECH
+   ====================================================== */
+function speak(text) {
+  const useS = document.getElementById('tog-speech').checked;
+  if (!useS || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = 0.85;
+  u.pitch = 1;
+  const voices = speechSynthesis.getVoices();
+  const eng = voices.find(v => v.lang.startsWith('en-US')) || voices.find(v => v.lang.startsWith('en'));
+  if (eng) u.voice = eng;
+  speechSynthesis.speak(u);
+}
+
+/* ======================================================
+   DING SOUND (AudioContext)
+   ====================================================== */
+let audioCtx = null;
+function ding() {
+  const useD = document.getElementById('tog-ding').checked;
+  if (!useD) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.4);
+  } catch(e) { /* silent fail */ }
+}
+
+/* ======================================================
+   LOCAL STORAGE
+   ====================================================== */
+function saveSettings() {
+  try {
+    localStorage.setItem('bingo_settings', JSON.stringify({
+      mode: state.mode,
+      timerSecs: state.timerSecs,
+      wordSetIndex: state.wordSetIndex,
+      useSpeech: document.getElementById('tog-speech').checked,
+      useDing: document.getElementById('tog-ding').checked,
+      customWords: document.getElementById('custom-words-area').value
+    }));
+  } catch(e) {}
+}
+
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem('bingo_settings') || '{}');
+    if (s.mode) selectMode(s.mode);
+    if (s.timerSecs) setTimer(s.timerSecs);
+    if (s.wordSetIndex !== undefined) selectWordSet(s.wordSetIndex);
+    if (s.useSpeech !== undefined) document.getElementById('tog-speech').checked = s.useSpeech;
+    if (s.useDing !== undefined) document.getElementById('tog-ding').checked = s.useDing;
+    if (s.customWords) document.getElementById('custom-words-area').value = s.customWords;
+  } catch(e) {}
+}
+
+/* ======================================================
+   PRINT EMPTY GRID
+   ====================================================== */
+function showPrint() {
+  const container = document.getElementById('print-grid-container');
+  const size = state.mode === '4x4' ? 4 : 5;
+  const hasFree = size === 5;
+  const center = Math.floor(size / 2);
+
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'print-grid';
+  grid.style.gridTemplateColumns = `repeat(${size}, 100px)`;
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'print-cell';
+      if (hasFree && r === center && c === center) {
+        cell.className += ' print-free';
+        cell.textContent = 'FREE ⭐';
+      }
+      grid.appendChild(cell);
+    }
+  }
+  container.appendChild(grid);
+
+  // Title above grid
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size:1.5rem;font-weight:900;text-align:center;color:#000;margin-bottom:16px';
+  title.textContent = `🎱 English Bingo — ${size}×${size} Grid`;
+  container.insertBefore(title, grid);
+
+  showScreen('screen-print');
+}
+
+/* ======================================================
+   GAME START
+   ====================================================== */
+function startGame() {
+  saveSettings();
+
+  // Get word list
+  let pool;
+  if (state.wordSetIndex === -1) {
+    pool = parseCustomWords();
+  } else {
+    pool = WORD_SETS[state.wordSetIndex].words;
+  }
+
+  const needed = state.mode === '4x4' ? 16 : 24;
+  if (pool.length < needed) {
+    alert(`Need at least ${needed} words for ${state.mode} mode. You have ${pool.length}. Please add more words or choose a different set.`);
+    return;
+  }
+
+  // Shuffle and pick
+  state.selectedWords = shuffle([...pool]).slice(0, needed);
+
+  // Start writing phase
+  state.phase = 'writing';
+  state.ph1Index = 0;
+  state.ph1Paused = false;
+  showScreen('screen-phase1');
+  ph1ShowWord(0);
+  ph1StartTimer();
+}
+
+function parseCustomWords() {
+  const text = document.getElementById('custom-words-area').value;
+  return text.split('\n').map(line => {
+    line = line.trim();
+    if (!line) return null;
+    // Extract emoji at start or end
+    const emojiMatch = line.match(/(\p{Emoji_Presentation}|\p{Emoji}️)/gu);
+    const word = line.replace(/(\p{Emoji_Presentation}|\p{Emoji}️)/gu, '').trim();
+    return { word: word || line, emoji: emojiMatch ? emojiMatch[0] : '' };
+  }).filter(Boolean);
+}
+
+/* ======================================================
+   PHASE 1 — WRITING
+   ====================================================== */
+function ph1ShowWord(idx) {
+  const w = state.selectedWords[idx];
+  const total = state.selectedWords.length;
+
+  document.getElementById('ph1-emoji').textContent = w.emoji || '📝';
+  document.getElementById('ph1-word').textContent = w.word;
+  document.getElementById('ph1-progress').textContent = `Word ${idx + 1} of ${total}`;
+
+  // Reset timer
+  state.ph1Remaining = state.timerSecs;
+  updateTimerDisplay();
+
+  // Speak
+  speak(w.word);
+}
+
+function ph1StartTimer() {
+  clearInterval(state.ph1Timer);
+  state.ph1Timer = setInterval(() => {
+    if (state.ph1Paused) return;
+    state.ph1Remaining -= 0.1;
+    updateTimerDisplay();
+    if (state.ph1Remaining <= 0) {
+      ph1Next();
+    }
+  }, 100);
+}
+
+function updateTimerDisplay() {
+  const secs = Math.max(0, Math.ceil(state.ph1Remaining));
+  document.getElementById('ph1-countdown').textContent = secs;
+  const pct = (state.ph1Remaining / state.timerSecs) * 100;
+  document.getElementById('ph1-bar').style.width = Math.max(0, pct) + '%';
+
+  // Color warning when low
+  const bar = document.getElementById('ph1-bar');
+  if (pct < 30) bar.style.background = 'linear-gradient(90deg,#e94560,#f5a623)';
+  else bar.style.background = 'linear-gradient(90deg,#4ade80,#f5a623)';
+}
+
+function ph1TogglePause() {
+  state.ph1Paused = !state.ph1Paused;
+  document.getElementById('ph1-pause-btn').textContent = state.ph1Paused ? '▶ Resume' : '⏸ Pause';
+}
+
+function ph1Next() {
+  const next = state.ph1Index + 1;
+  if (next >= state.selectedWords.length) {
+    // Move to phase 2
+    ph1End();
+    return;
+  }
+  ding();
+  state.ph1Index = next;
+  ph1ShowWord(next);
+}
+
+function ph1Prev() {
+  if (state.ph1Index <= 0) return;
+  state.ph1Index--;
+  ph1ShowWord(state.ph1Index);
+}
+
+function ph1End() {
+  clearInterval(state.ph1Timer);
+  startPhase2();
+}
+
+/* ======================================================
+   PHASE 2 — DRAWING
+   ====================================================== */
+function startPhase2() {
+  state.phase = 'drawing';
+  state.ph2Order = shuffle(state.selectedWords.map((_, i) => i));
+  state.ph2Step = -1; // nothing drawn yet
+
+  // Build called grid
+  const grid = document.getElementById('called-grid');
+  grid.innerHTML = '';
+  state.selectedWords.forEach((w, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'called-chip';
+    chip.id = `chip-${i}`;
+    chip.textContent = w.word;
+    grid.appendChild(chip);
+  });
+
+  document.getElementById('ph2-emoji').textContent = '🎲';
+  document.getElementById('ph2-word').textContent = 'Press Space!';
+  updatePh2Remaining();
+
+  showScreen('screen-phase2');
+}
+
+function ph2Next() {
+  const nextStep = state.ph2Step + 1;
+  if (nextStep >= state.ph2Order.length) {
+    // All words drawn
+    document.getElementById('ph2-word').textContent = 'All done! 🎉';
+    document.getElementById('ph2-emoji').textContent = '🏆';
+    return;
+  }
+  state.ph2Step = nextStep;
+  const wordIdx = state.ph2Order[nextStep];
+  const w = state.selectedWords[wordIdx];
+
+  document.getElementById('ph2-emoji').textContent = w.emoji || '🎲';
+  document.getElementById('ph2-word').textContent = w.word;
+
+  // Highlight chip
+  document.getElementById(`chip-${wordIdx}`).classList.add('called');
+
+  ding();
+  speak(w.word);
+  updatePh2Remaining();
+}
+
+function updatePh2Remaining() {
+  const drawn = state.ph2Step + 1;
+  const total = state.ph2Order.length;
+  const left = total - drawn;
+  document.getElementById('ph2-remaining').textContent =
+    drawn <= 0 ? `${total} words total` : `${drawn} drawn · ${left} left`;
+}
+
+function ph2NewGame() {
+  // Reshuffle same words
+  startPhase2();
+}
+
+/* ======================================================
+   SPEAK CURRENT
+   ====================================================== */
+function speakCurrent() {
+  if (state.phase === 'writing') {
+    speak(state.selectedWords[state.ph1Index].word);
+  } else if (state.phase === 'drawing' && state.ph2Step >= 0) {
+    const w = state.selectedWords[state.ph2Order[state.ph2Step]];
+    speak(w.word);
+  }
+}
+
+/* ======================================================
+   KEYBOARD SHORTCUTS
+   ====================================================== */
+function onKeyDown(e) {
+  const tag = e.target.tagName.toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return;
+
+  if (state.phase === 'writing') {
+    if (e.code === 'Space') { e.preventDefault(); ph1TogglePause(); }
+    else if (e.code === 'ArrowRight') { e.preventDefault(); ph1Next(); }
+    else if (e.code === 'ArrowLeft')  { e.preventDefault(); ph1Prev(); }
+    else if (e.code === 'KeyR')        speakCurrent();
+  } else if (state.phase === 'drawing') {
+    if (e.code === 'Space' || e.code === 'ArrowRight') { e.preventDefault(); ph2Next(); }
+    else if (e.code === 'KeyR') speakCurrent();
+  }
+}
+
+/* ======================================================
+   UTILITIES
+   ====================================================== */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-start') {
+    // Reset game state when going back
+    state.phase = null;
+    clearInterval(state.ph1Timer);
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+  }
+}
+</script>
+</body>
+</html>
