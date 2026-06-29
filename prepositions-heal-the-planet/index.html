@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heal the Planet – Prepositions of Place</title>
+<style>
+/* ===== RESET & TOKENS ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d1b2a;
+  --panel:    #1b2a3b;
+  --deep:     #0a1628;
+  --correct:  #43a047;
+  --wrong:    #e53935;
+  --action:   #1565c0;
+  --next:     #6a1b9a;
+  --text:     #ffffff;
+  --muted:    #90a4ae;
+  --radius:   14px;
+  --ctrl-h:   82px;
+  --scene-bg-sky: #87ceeb;
+  --scene-bg-ground: #c8a96e;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ===== TOP BAR ===== */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--panel);
+  border-bottom: 3px solid #1e3a5f;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
+.mode-btn {
+  padding: 10px 18px;
+  font-size: 17px;
+  font-weight: 700;
+  border: 3px solid #2a4a6a;
+  border-radius: var(--radius);
+  background: var(--deep);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.mode-btn:hover { color: var(--text); border-color: #4a7aaa; }
+.mode-btn.active {
+  background: var(--action);
+  border-color: #64b5f6;
+  color: var(--text);
+}
+
+#score-display {
+  margin-left: auto;
+  font-size: 26px;
+  font-weight: 800;
+  background: var(--deep);
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  border: 3px solid #4a7aaa;
+  white-space: nowrap;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.icon-btn {
+  width: 50px; height: 50px;
+  font-size: 24px;
+  border: 3px solid #2a4a6a;
+  border-radius: var(--radius);
+  background: var(--deep);
+  color: var(--text);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: #1e3a5f; border-color: #4a7aaa; }
+
+/* ===== MAIN LAYOUT ===== */
+#main {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ===== PLANET PANEL ===== */
+#planet-panel {
+  width: 210px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 12px;
+  border: 2px solid #1e3a5f;
+}
+
+#planet-svg { width: 180px; height: 180px; }
+
+#planet-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+#stage-name {
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--text);
+  min-height: 28px;
+}
+
+#progress-track {
+  width: 100%;
+  height: 22px;
+  background: #0a1628;
+  border-radius: 11px;
+  border: 2px solid #2a4a6a;
+  overflow: hidden;
+}
+#progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #43a047, #8bc34a, #cddc39);
+  border-radius: 11px;
+  width: 0%;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#progress-text {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ===== GAME PANEL ===== */
+#game-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ===== SCENE AREA ===== */
+#scene-area {
+  flex: 1;
+  border-radius: var(--radius);
+  border: 4px solid #1e3a5f;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(to bottom, #87ceeb 0%, #c9eaf8 58%, #c9eaf8 58%, #c8a96e 58.5%, #b8956a 100%);
+  transition: box-shadow 0.4s;
+  min-height: 0;
+}
+
+/* subtle shelf line */
+#scene-area::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 58%;
+  height: 4px;
+  background: rgba(0,0,0,0.12);
+  pointer-events: none;
+}
+
+/* ===== SCENE OBJECTS ===== */
+.scene-ref, .scene-ref2, .scene-obj {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  line-height: 1;
+  transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.35));
+}
+.scene-ref  { font-size: 110px; z-index: 2; }
+.scene-ref2 { font-size: 110px; z-index: 2; }
+.scene-obj  { font-size: 90px;  z-index: 3; }
+
+/* staging position for mode 3 */
+.scene-obj.staging {
+  left: 8% !important;
+  top: 20% !important;
+  z-index: 5;
+  animation: stageBounce 1.2s ease-in-out infinite;
+}
+@keyframes stageBounce {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%       { transform: translate(-50%, -58%) scale(1.05); }
+}
+.scene-obj.placed { animation: none; }
+
+/* ===== ANSWER / COMMAND TEXT ===== */
+#answer-box {
+  font-size: 38px;
+  font-weight: 800;
+  text-align: center;
+  padding: 14px 20px;
+  background: var(--panel);
+  border-radius: var(--radius);
+  border: 3px solid transparent;
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: border-color 0.3s, color 0.3s;
+}
+#answer-box.revealed { border-color: var(--correct); color: #a5d6a7; }
+#answer-box.command  { border-color: #1565c0;         color: #90caf9; }
+#answer-box.neutral  { border-color: #2a4a6a; }
+
+/* ===== MODE 2 PREPOSITION BUTTONS ===== */
+#prep-grid {
+  display: none;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  flex-shrink: 0;
+}
+#prep-grid.visible { display: grid; }
+
+.prep-btn {
+  height: 68px;
+  font-size: 21px;
+  font-weight: 800;
+  border: 4px solid #2a4a6a;
+  border-radius: var(--radius);
+  background: var(--deep);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-transform: lowercase;
+}
+.prep-btn:hover:not(:disabled) { background: var(--action); border-color: #64b5f6; transform: scale(1.03); }
+.prep-btn.hit-correct { background: #1b5e20; border-color: var(--correct); color: #a5d6a7; transform: scale(1.06); }
+.prep-btn.hit-wrong   { background: #7f0000; border-color: var(--wrong);   color: #ef9a9a; }
+
+/* ===== BOTTOM CONTROLS ===== */
+#controls {
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border-top: 3px solid #1e3a5f;
+  flex-shrink: 0;
+}
+
+.ctrl-btn {
+  flex: 1;
+  height: var(--ctrl-h);
+  font-size: 22px;
+  font-weight: 800;
+  border: 4px solid #2a4a6a;
+  border-radius: var(--radius);
+  background: var(--deep);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.ctrl-btn:hover:not(:disabled) { transform: scale(1.04); }
+.ctrl-btn:active:not(:disabled){ transform: scale(0.97); }
+.ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+
+.btn-action  { background: #0d47a1; border-color: #1565c0; }
+.btn-action:hover:not(:disabled)  { background: var(--action); }
+.btn-correct { background: #1b5e20; border-color: var(--correct); }
+.btn-correct:hover:not(:disabled) { background: #2e7d32; }
+.btn-wrong   { background: #7f0000; border-color: var(--wrong); }
+.btn-wrong:hover:not(:disabled)   { background: #b71c1c; }
+.btn-say     { background: #00695c; border-color: #26a69a; }
+.btn-say:hover:not(:disabled)     { background: #00897b; }
+.btn-next    { background: #4a148c; border-color: #9c27b0; }
+.btn-next:hover:not(:disabled)    { background: var(--next); }
+
+/* ===== FLASH OVERLAYS ===== */
+#flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.05s;
+}
+
+/* ===== FIREWORKS ===== */
+#fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 90;
+}
+
+/* ===== WIN BANNER ===== */
+#win-banner {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.82);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 24px;
+  text-align: center;
+  padding: 40px;
+}
+#win-banner.show { display: flex; }
+#win-banner .win-title {
+  font-size: 76px;
+  line-height: 1.1;
+  animation: winPulse 0.7s ease-in-out infinite alternate;
+}
+@keyframes winPulse {
+  from { transform: scale(1); text-shadow: 0 0 30px #ffd700; }
+  to   { transform: scale(1.06); text-shadow: 0 0 60px #ffd700; }
+}
+#win-banner .win-sub { font-size: 34px; color: var(--muted); }
+#win-banner .win-close {
+  padding: 20px 60px;
+  font-size: 26px;
+  font-weight: 800;
+  border: 4px solid var(--correct);
+  border-radius: 20px;
+  background: #1b5e20;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+#win-banner .win-close:hover { background: var(--correct); transform: scale(1.05); }
+
+/* ===== SCORE POP ===== */
+@keyframes scorePop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); color: #a5d6a7; }
+  100% { transform: scale(1); color: var(--text); }
+}
+.score-pop { animation: scorePop 0.4s ease-out forwards; }
+</style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <button class="mode-btn active" id="modeBtn1" onclick="setMode(1)">🔍 Where is it?</button>
+  <button class="mode-btn"        id="modeBtn2" onclick="setMode(2)">🎯 Guess &amp; Check</button>
+  <button class="mode-btn"        id="modeBtn3" onclick="setMode(3)">👂 Listen &amp; Place</button>
+  <div id="score-display">⭐ 0 / 30</div>
+  <button class="icon-btn" id="muteBtn"  onclick="toggleMute()" title="Mute / Unmute">🔊</button>
+  <button class="icon-btn" onclick="resetGame()" title="Reset game">🔄</button>
+</div>
+
+<!-- ── MAIN ── -->
+<div id="main">
+
+  <!-- Planet panel -->
+  <div id="planet-panel">
+    <div id="planet-label">🌍 Heal the Planet</div>
+    <svg id="planet-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="stage-name">Polluted 🏭</div>
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <div id="progress-text">0 / 30 points</div>
+  </div>
+
+  <!-- Game panel -->
+  <div id="game-panel">
+    <div id="scene-area"></div>
+    <div id="answer-box" class="neutral">Press ▶ Next to start!</div>
+    <div id="prep-grid"></div>
+  </div>
+
+</div>
+
+<!-- ── BOTTOM CONTROLS ── -->
+<div id="controls">
+  <button class="ctrl-btn btn-action"  id="btn-show"    onclick="handleShow()">👁 Show Answer</button>
+  <button class="ctrl-btn btn-say"     id="btn-say"     onclick="speak(getCommandText(scene))" style="display:none">🔊 Say Again</button>
+  <button class="ctrl-btn btn-correct" id="btn-correct" onclick="handleCorrect()" disabled>✅ Correct!</button>
+  <button class="ctrl-btn btn-wrong"   id="btn-wrong"   onclick="handleWrong()"   disabled>↩ Try Again</button>
+  <button class="ctrl-btn btn-next"    id="btn-next"    onclick="nextRound()">▶ Next</button>
+</div>
+
+<!-- ── OVERLAYS ── -->
+<div id="flash"></div>
+<canvas id="fireworks-canvas"></canvas>
+
+<div id="win-banner">
+  <div class="win-title">🌈 Planet Saved! 🎉</div>
+  <div class="win-sub">Amazing work, class! The planet is healthy again!</div>
+  <button class="win-close" onclick="dismissWin()">Keep Playing! 🎮</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURATION  ← easy to edit
+// ═══════════════════════════════════════════════════════════════
+
+const MAX_SCORE = 30;  // total points to fully heal the planet
+
+/* Planet healing stages — adjust pts thresholds here */
+const STAGES = [
+  { pts:  0, name: 'Polluted 🏭'       },
+  { pts:  5, name: 'Grass Growing 🌱'  },
+  { pts: 10, name: 'Trees! 🌲'         },
+  { pts: 15, name: 'Flowers! 🌸'       },
+  { pts: 20, name: 'River & Clouds 🌊' },
+  { pts: 25, name: 'Animals! 🐾'       },
+  { pts: 30, name: 'Planet Saved! 🌈'  },
+];
+
+/* Objects that appear in scenes — add or remove freely */
+const OBJECTS = [
+  { emoji: '🐱', name: 'cat'   },
+  { emoji: '⚽', name: 'ball'  },
+  { emoji: '🐦', name: 'bird'  },
+  { emoji: '🐶', name: 'dog'   },
+  { emoji: '📚', name: 'book'  },
+  { emoji: '🍎', name: 'apple' },
+];
+
+/* Reference items the object is placed relative to */
+const REFS = [
+  { emoji: '📦', name: 'box'   },
+  { emoji: '🪑', name: 'chair' },
+  { emoji: '🛋️', name: 'sofa'  },
+];
+
+/* All six target prepositions */
+const PREPS = ['on', 'under', 'behind', 'in front of', 'next to', 'between'];
+
+// ═══════════════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════════════
+let score       = 0;
+let currentMode = 1;
+let muted       = false;
+let audioCtx    = null;
+
+let scene       = null;   // current scene object
+let answerShown = false;
+let placed      = false;
+let lastKey     = '';     // prevent same combo twice in a row
+let mode2Done   = false;  // did mode-2 already register a result?
+
+// ═══════════════════════════════════════════════════════════════
+// WEB AUDIO  — no external files
+// ═══════════════════════════════════════════════════════════════
+function ctx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playDing() {
+  if (muted) return;
+  try {
+    const c = ctx(), t = c.currentTime;
+    const osc = c.createOscillator(), g = c.createGain();
+    osc.connect(g); g.connect(c.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, t);
+    osc.frequency.exponentialRampToValueAtTime(1320, t + 0.08);
+    g.gain.setValueAtTime(0.35, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+    osc.start(t); osc.stop(t + 0.45);
+  } catch(e) {}
+}
+
+function playWrong() {
+  if (muted) return;
+  try {
+    const c = ctx(), t = c.currentTime;
+    const osc = c.createOscillator(), g = c.createGain();
+    osc.connect(g); g.connect(c.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(280, t);
+    osc.frequency.exponentialRampToValueAtTime(160, t + 0.35);
+    g.gain.setValueAtTime(0.2, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    osc.start(t); osc.stop(t + 0.35);
+  } catch(e) {}
+}
+
+function playFanfare() {
+  if (muted) return;
+  try {
+    const c = ctx();
+    // C-major ascending arpeggio
+    [523, 659, 784, 1047, 784, 1047, 1319, 1047, 1319].forEach((f, i) => {
+      const osc = c.createOscillator(), g = c.createGain();
+      osc.connect(g); g.connect(c.destination);
+      osc.type = 'triangle';
+      const t = c.currentTime + i * 0.11;
+      osc.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.28, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.start(t); osc.stop(t + 0.18);
+    });
+  } catch(e) {}
+}
+
+function toggleMute() {
+  muted = !muted;
+  document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+  if (muted) speechSynthesis.cancel();
+}
+
+// ── Web Speech API ──────────────────────────────────────────────
+// Speaks text aloud using the browser's built-in TTS engine.
+// Picks the best available English voice; falls back to the default.
+let preferredVoice = null;
+
+function loadVoice() {
+  const voices = speechSynthesis.getVoices();
+  // Prefer a natural-sounding English voice
+  const pick = voices.find(v => v.lang.startsWith('en') && v.localService) ||
+               voices.find(v => v.lang.startsWith('en')) ||
+               voices[0] || null;
+  preferredVoice = pick;
+}
+// Voices load asynchronously in some browsers
+speechSynthesis.onvoiceschanged = loadVoice;
+loadVoice();
+
+function speak(text) {
+  if (muted || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();                      // stop anything already playing
+  const utt = new SpeechSynthesisUtterance(text);
+  if (preferredVoice) utt.voice = preferredVoice;
+  utt.rate  = 0.88;   // slightly slower — easier for learners
+  utt.pitch = 1.05;
+  utt.lang  = 'en-US';
+  speechSynthesis.speak(utt);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FIREWORKS (canvas-based, no external libraries)
+// ═══════════════════════════════════════════════════════════════
+const fwCanvas = document.getElementById('fireworks-canvas');
+const fwCtx = fwCanvas.getContext('2d');
+let particles = [];
+let fwRafId = null;
+
+function resizeFwCanvas() {
+  fwCanvas.width  = window.innerWidth;
+  fwCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeFwCanvas);
+resizeFwCanvas();
+
+function spawnBurst(x, y) {
+  const colors = ['#f44336','#ff9800','#ffeb3b','#4caf50','#2196f3','#ce93d8','#f48fb1','#80deea'];
+  const count = 28 + Math.random() * 20 | 0;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2 + Math.random() * 0.4;
+    const speed = 4 + Math.random() * 6;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      color: colors[Math.random() * colors.length | 0],
+      life: 1,
+      decay: 0.016 + Math.random() * 0.014,
+      r: 3 + Math.random() * 4,
+    });
+  }
+}
+
+function animateFireworks() {
+  fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+  particles.forEach(p => {
+    p.x  += p.vx; p.y  += p.vy;
+    p.vy += 0.18; // gravity
+    p.vx *= 0.97;
+    p.life -= p.decay;
+    fwCtx.globalAlpha = Math.max(0, p.life);
+    fwCtx.fillStyle = p.color;
+    fwCtx.beginPath();
+    fwCtx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+    fwCtx.fill();
+  });
+  fwCtx.globalAlpha = 1;
+  particles = particles.filter(p => p.life > 0);
+  if (particles.length > 0) fwRafId = requestAnimationFrame(animateFireworks);
+  else fwRafId = null;
+}
+
+function launchFireworks(duration = 3000) {
+  const w = fwCanvas.width, h = fwCanvas.height;
+  const startTime = Date.now();
+  function burst() {
+    spawnBurst(w * (0.15 + Math.random() * 0.7), h * (0.1 + Math.random() * 0.55));
+    if (Date.now() - startTime < duration) setTimeout(burst, 200 + Math.random() * 200);
+  }
+  burst();
+  if (!fwRafId) fwRafId = requestAnimationFrame(animateFireworks);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PLANET SVG  — 7 progressive layers
+// ═══════════════════════════════════════════════════════════════
+function getStageIndex() {
+  for (let i = STAGES.length - 1; i >= 0; i--) {
+    if (score >= STAGES[i].pts) return i;
+  }
+  return 0;
+}
+
+function buildPlanet(si) {
+  const baseColors = [
+    ['#888','#555'],   // 0 polluted
+    ['#7ecb5c','#3d6e2a'], // 1 grass
+    ['#6db84a','#2e5e1a'], // 2 trees
+    ['#6db84a','#2e5e1a'], // 3 flowers
+    ['#5aac8a','#1e6e55'], // 4 river
+    ['#5aac8a','#1e6e55'], // 5 animals
+    ['#3dbe7a','#1a7a4a'], // 6 healed
+  ];
+  const [c1, c2] = baseColors[si];
+
+  let s = `
+  <defs>
+    <radialGradient id="pg" cx="38%" cy="32%">
+      <stop offset="0%" stop-color="${si===0?'#aaa':c1}"/>
+      <stop offset="100%" stop-color="${c2}"/>
+    </radialGradient>
+    <clipPath id="pc"><circle cx="100" cy="100" r="87"/></clipPath>
+  </defs>
+  <!-- shadow -->
+  <circle cx="104" cy="104" r="90" fill="rgba(0,0,0,0.25)"/>
+  <!-- base -->
+  <circle cx="100" cy="100" r="88" fill="url(#pg)"/>
+
+  <!-- STAGE 0 — pollution & trash -->
+  ${si===0 ? `
+    <circle cx="72" cy="82" r="14" fill="#666" clip-path="url(#pc)"/>
+    <circle cx="128" cy="115" r="9" fill="#666" clip-path="url(#pc)"/>
+    <circle cx="88" cy="135" r="11" fill="#666" clip-path="url(#pc)"/>
+    <text x="58"  y="94"  font-size="20" clip-path="url(#pc)">🗑️</text>
+    <text x="108" y="80"  font-size="17" clip-path="url(#pc)">🛢️</text>
+    <text x="75"  y="138" font-size="17" clip-path="url(#pc)">🥫</text>
+    <text x="122" y="108" font-size="15" clip-path="url(#pc)">💨</text>
+    <text x="95"  y="60"  font-size="15" clip-path="url(#pc)">💨</text>
+  ` : ''}
+
+  <!-- STAGE 1+ — grass -->
+  ${si>=1 ? `
+    <path d="M25,148 Q62,135 100,142 Q138,135 175,148 Q160,172 100,176 Q40,172 25,148Z"
+          fill="#4caf50" clip-path="url(#pc)"/>
+    <path d="M35,150 Q68,138 100,144 Q132,138 165,150"
+          stroke="#66bb6a" stroke-width="3" fill="none" clip-path="url(#pc)"/>
+  ` : ''}
+
+  <!-- STAGE 2+ — trees -->
+  ${si>=2 ? `
+    <g clip-path="url(#pc)">
+      <rect x="55" y="128" width="8" height="20" fill="#6d4c41"/>
+      <polygon points="59,104 44,134 74,134" fill="#2e7d32"/>
+      <polygon points="59,112 47,132 71,132" fill="#43a047"/>
+      <rect x="132" y="118" width="8" height="24" fill="#6d4c41"/>
+      <polygon points="136,94 121,122 151,122" fill="#2e7d32"/>
+      <polygon points="136,102 124,120 148,120" fill="#43a047"/>
+    </g>
+  ` : ''}
+
+  <!-- STAGE 3+ — flowers -->
+  ${si>=3 ? `
+    <g clip-path="url(#pc)">
+      <text x="74"  y="154" font-size="17">🌸</text>
+      <text x="104" y="157" font-size="15">🌻</text>
+      <text x="89"  y="150" font-size="13">🌼</text>
+      <text x="120" y="148" font-size="13">🌷</text>
+    </g>
+  ` : ''}
+
+  <!-- STAGE 4+ — river & clouds -->
+  ${si>=4 ? `
+    <path d="M35,132 Q68,122 100,128 Q132,134 165,122"
+          stroke="#1e88e5" stroke-width="10" fill="none" stroke-linecap="round"
+          opacity="0.75" clip-path="url(#pc)"/>
+    <path d="M38,132 Q70,124 100,130 Q130,136 162,124"
+          stroke="#64b5f6" stroke-width="4" fill="none" stroke-linecap="round"
+          opacity="0.5" clip-path="url(#pc)"/>
+    <g clip-path="url(#pc)" opacity="0.9">
+      <ellipse cx="72"  cy="66" rx="20" ry="11" fill="white"/>
+      <ellipse cx="84"  cy="60" rx="16" ry="10" fill="white"/>
+      <ellipse cx="96"  cy="66" rx="14" ry="9"  fill="white"/>
+      <ellipse cx="148" cy="78" rx="16" ry="9"  fill="white"/>
+      <ellipse cx="160" cy="72" rx="13" ry="8"  fill="white"/>
+    </g>
+  ` : ''}
+
+  <!-- STAGE 5+ — animals -->
+  ${si>=5 ? `
+    <g clip-path="url(#pc)">
+      <text x="50"  y="110" font-size="20">🐦</text>
+      <text x="132" y="96"  font-size="18">🐦</text>
+      <text x="98"  y="168" font-size="20">🐰</text>
+    </g>
+  ` : ''}
+
+  <!-- STAGE 6 — rainbow & sun -->
+  ${si>=6 ? `
+    <g clip-path="url(#pc)" opacity="0.82">
+      <path d="M28,148 Q100,68 172,148" stroke="#ef5350" stroke-width="5" fill="none"/>
+      <path d="M33,148 Q100,76 167,148" stroke="#fb8c00" stroke-width="5" fill="none"/>
+      <path d="M38,148 Q100,84 162,148" stroke="#fdd835" stroke-width="5" fill="none"/>
+      <path d="M43,148 Q100,92 157,148" stroke="#43a047" stroke-width="5" fill="none"/>
+      <path d="M48,148 Q100,100 152,148" stroke="#1e88e5" stroke-width="5" fill="none"/>
+      <path d="M53,148 Q100,108 147,148" stroke="#8e24aa" stroke-width="4" fill="none"/>
+    </g>
+    <g clip-path="url(#pc)">
+      <circle cx="152" cy="52" r="15" fill="#fdd835"/>
+      <g stroke="#fdd835" stroke-width="3.5" stroke-linecap="round">
+        <line x1="152" y1="30" x2="152" y2="23"/>
+        <line x1="152" y1="74" x2="152" y2="81"/>
+        <line x1="130" y1="52" x2="123" y2="52"/>
+        <line x1="174" y1="52" x2="181" y2="52"/>
+        <line x1="136" y1="36" x2="131" y2="31"/>
+        <line x1="168" y1="68" x2="173" y2="73"/>
+        <line x1="168" y1="36" x2="173" y2="31"/>
+        <line x1="136" y1="68" x2="131" y2="73"/>
+      </g>
+    </g>
+  ` : ''}
+
+  <!-- rim highlight -->
+  <circle cx="100" cy="100" r="87" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  `;
+
+  document.getElementById('planet-svg').innerHTML = s;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCORE UI
+// ═══════════════════════════════════════════════════════════════
+function updateUI() {
+  const si = getStageIndex();
+  const pct = Math.min(100, (score / MAX_SCORE) * 100);
+  document.getElementById('score-display').textContent  = `⭐ ${score} / ${MAX_SCORE}`;
+  document.getElementById('progress-fill').style.width  = pct + '%';
+  document.getElementById('progress-text').textContent  = `${score} / ${MAX_SCORE} points`;
+  document.getElementById('stage-name').textContent     = STAGES[si].name;
+  buildPlanet(si);
+}
+
+function addPoint() {
+  if (score >= MAX_SCORE) return;
+  score++;
+  playDing();
+  updateUI();
+
+  // animate score counter
+  const el = document.getElementById('score-display');
+  el.classList.remove('score-pop');
+  void el.offsetWidth; // reflow
+  el.classList.add('score-pop');
+  setTimeout(() => el.classList.remove('score-pop'), 450);
+
+  if (score >= MAX_SCORE) setTimeout(triggerWin, 500);
+}
+
+function triggerWin() {
+  playFanfare();
+  launchFireworks(4000);
+  document.getElementById('win-banner').classList.add('show');
+}
+
+function dismissWin() {
+  document.getElementById('win-banner').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCENE POSITIONS
+// ═══════════════════════════════════════════════════════════════
+/*
+  Each position entry: { obj:[left%,top%], ref:[left%,top%], ref2?:[left%,top%] }
+  Coordinates are percentages of the scene-area container.
+  The scene floor is at 58% height (matching CSS ::after pseudo).
+  Reference items (110px emoji) sit with their center at ~48-52% top.
+  Object (90px) is placed relative to the reference.
+*/
+/*
+  Each entry: obj/ref as [left%, top%] of scene container.
+  objZ / refZ control paint order (higher = drawn on top).
+  objSize overrides the default 90px emoji font-size.
+
+  Visual logic:
+    on          — obj rests on top of ref, no overlap, ref below obj
+    under       — obj below ref with a clear gap
+    behind      — ref is drawn OVER obj (refZ > objZ); obj also slightly smaller
+                  so it looks smaller/farther and is partially hidden by the ref
+    in front of — obj is drawn OVER ref (objZ > refZ); obj overlaps the front face
+    next to     — side by side (handled in getPositions)
+    between     — obj between two identical refs
+*/
+const POSITIONS = {
+  'on': {
+    obj: [50, 29],  ref: [50, 57],
+    objZ: 3, refZ: 2,
+  },
+  'under': {
+    obj: [50, 76],  ref: [50, 41],
+    objZ: 3, refZ: 2,
+  },
+  'behind': {
+    // ref draws OVER obj → obj looks hidden behind the box
+    obj: [50, 44],  ref: [50, 53],
+    objZ: 1, refZ: 6,
+    objSize: '68px',   // smaller = farther away / depth cue
+  },
+  'in front of': {
+    // obj draws OVER ref AND is larger — bigger = closer, a natural depth cue
+    obj: [50, 61],  ref: [50, 44],
+    objZ: 6, refZ: 2,
+    objSize: '118px',
+  },
+  'next to': null,   // handled in getPositions()
+  'between': {
+    obj:  [50, 50],
+    ref:  [22, 50],
+    ref2: [78, 50],
+    objZ: 3, refZ: 2,
+  },
+};
+
+function getPositions(prep, nextToSide) {
+  if (prep === 'next to') {
+    // nextToSide: 'left' | 'right'
+    return nextToSide === 'left'
+      ? { obj: [25, 50], ref: [62, 50] }
+      : { obj: [75, 50], ref: [38, 50] };
+  }
+  return POSITIONS[prep];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCENE GENERATION
+// ═══════════════════════════════════════════════════════════════
+function pick(arr) { return arr[Math.random() * arr.length | 0]; }
+
+function makeScene() {
+  let obj, ref, prep, side, key;
+  let attempts = 0;
+  do {
+    obj  = pick(OBJECTS);
+    ref  = pick(REFS);
+    prep = pick(PREPS);
+    side = Math.random() < 0.5 ? 'left' : 'right';
+    key  = `${obj.name}-${ref.name}-${prep}-${side}`;
+    attempts++;
+  } while (key === lastKey && attempts < 25);
+  lastKey = key;
+  return { obj, ref, prep, side };
+}
+
+// words ending in -x, -s, -sh, -ch → +es; otherwise → +s
+function plural(word) {
+  return /([xsz]|sh|ch)$/.test(word) ? word + 'es' : word + 's';
+}
+
+function getAnswerText(sc) {
+  if (sc.prep === 'between') {
+    return `The ${sc.obj.name} is between the two ${plural(sc.ref.name)}.`;
+  }
+  return `The ${sc.obj.name} is ${sc.prep} the ${sc.ref.name}.`;
+}
+
+function getCommandText(sc) {
+  if (sc.prep === 'between') {
+    return `Put the ${sc.obj.name} between the two ${plural(sc.ref.name)}.`;
+  }
+  return `Put the ${sc.obj.name} ${sc.prep} the ${sc.ref.name}.`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCENE RENDERING
+// ═══════════════════════════════════════════════════════════════
+function renderScene(sc, hideObj = false) {
+  const area  = document.getElementById('scene-area');
+  const pos   = getPositions(sc.prep, sc.side);
+
+  const refZ    = (!hideObj && pos.refZ) ? pos.refZ : 2;
+  const objZ    = (!hideObj && pos.objZ) ? pos.objZ : 3;
+  const objSize = (!hideObj && pos.objSize) ? `font-size:${pos.objSize};` : '';
+
+  const refHTML = `<div class="scene-ref"
+    style="left:${pos.ref[0]}%;top:${pos.ref[1]}%;z-index:${refZ}">${sc.ref.emoji}</div>`;
+
+  const ref2HTML = pos.ref2
+    ? `<div class="scene-ref2"
+        style="left:${pos.ref2[0]}%;top:${pos.ref2[1]}%;z-index:${refZ}">${sc.ref.emoji}</div>`
+    : '';
+
+  const objStyle = hideObj
+    ? `left:8%;top:18%`
+    : `left:${pos.obj[0]}%;top:${pos.obj[1]}%;z-index:${objZ};${objSize}`;
+
+  const objClass = hideObj ? 'scene-obj staging' : 'scene-obj';
+
+  area.innerHTML = `
+    ${refHTML}
+    ${ref2HTML}
+    <div id="scene-obj" class="${objClass}" style="${objStyle}">${sc.obj.emoji}</div>
+  `;
+}
+
+function placeObject(sc) {
+  const el  = document.getElementById('scene-obj');
+  const pos = getPositions(sc.prep, sc.side);
+  // also update the reference z-index so behind/in-front-of look correct after placing
+  document.querySelectorAll('.scene-ref, .scene-ref2').forEach(r => {
+    r.style.zIndex = pos.refZ || 2;
+  });
+  el.classList.remove('staging');
+  el.classList.add('placed');
+  el.style.left     = pos.obj[0] + '%';
+  el.style.top      = pos.obj[1] + '%';
+  el.style.zIndex   = pos.objZ || 3;
+  el.style.fontSize = pos.objSize || '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FLASH FEEDBACK
+// ═══════════════════════════════════════════════════════════════
+function flash(color) {
+  const el = document.getElementById('flash');
+  el.style.background = color;
+  el.style.opacity = '0.18';
+  setTimeout(() => { el.style.opacity = '0'; }, 350);
+}
+
+function flashScene(color) {
+  const area = document.getElementById('scene-area');
+  area.style.boxShadow = `0 0 0 6px ${color}`;
+  setTimeout(() => { area.style.boxShadow = ''; }, 500);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODE 1 — "Where is it?"
+// ═══════════════════════════════════════════════════════════════
+function initMode1() {
+  scene       = makeScene();
+  answerShown = false;
+  renderScene(scene);
+
+  setAnswerBox(`Where is the ${scene.obj.name}?`, 'neutral');
+  hidePrepGrid();
+
+  show('btn-show');  enable('btn-show');  setLabel('btn-show', '👁 Show Answer');
+  hide('btn-say');
+  disable('btn-correct');
+  disable('btn-wrong');
+  enable('btn-next');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODE 2 — "Guess & Check"
+// ═══════════════════════════════════════════════════════════════
+function initMode2() {
+  scene     = makeScene();
+  mode2Done = false;
+  renderScene(scene);
+
+  setAnswerBox(`Which preposition? Press a button! 👇`, 'neutral');
+  hide('btn-show');
+  hide('btn-say');
+  disable('btn-correct');
+  disable('btn-wrong');
+  enable('btn-next');
+
+  // Build 6 preposition buttons
+  const grid = document.getElementById('prep-grid');
+  grid.innerHTML = '';
+  grid.classList.add('visible');
+  PREPS.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'prep-btn';
+    btn.textContent = p;
+    btn.onclick = () => handlePrepGuess(p, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function handlePrepGuess(chosen, btn) {
+  if (mode2Done) return;
+  mode2Done = true;
+  document.querySelectorAll('.prep-btn').forEach(b => b.disabled = true);
+
+  if (chosen === scene.prep) {
+    btn.classList.add('hit-correct');
+    setAnswerBox(`✅ ${getAnswerText(scene)}`, 'revealed');
+    addPoint();
+    flash('#43a047');
+    flashScene('#43a047');
+  } else {
+    btn.classList.add('hit-wrong');
+    // also highlight the correct button
+    document.querySelectorAll('.prep-btn').forEach(b => {
+      if (b.textContent === scene.prep) b.classList.add('hit-correct');
+    });
+    setAnswerBox(`The answer: ${getAnswerText(scene)}`, 'revealed');
+    playWrong();
+    flash('#e53935');
+    flashScene('#e53935');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODE 3 — "Listen & Place"
+// ═══════════════════════════════════════════════════════════════
+function initMode3() {
+  scene   = makeScene();
+  placed  = false;
+  renderScene(scene, true);   // object shown in staging area
+
+  const cmd = getCommandText(scene);
+  setAnswerBox(`📢 ${cmd}`, 'command');
+  hidePrepGrid();
+
+  show('btn-show');  enable('btn-show');  setLabel('btn-show', '📍 Place!');
+  show('btn-say');   enable('btn-say');
+  disable('btn-correct');
+  disable('btn-wrong');
+  enable('btn-next');
+
+  // Speak after a short delay so the UI has settled
+  setTimeout(() => speak(cmd), 300);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONTROL BUTTON HANDLERS
+// ═══════════════════════════════════════════════════════════════
+function handleShow() {
+  if (currentMode === 1 && !answerShown) {
+    answerShown = true;
+    setAnswerBox(getAnswerText(scene), 'revealed');
+    disable('btn-show');
+    enable('btn-correct');
+    enable('btn-wrong');
+
+  } else if (currentMode === 3 && !placed) {
+    placed = true;
+    placeObject(scene);
+    disable('btn-show');
+    enable('btn-correct');
+    enable('btn-wrong');
+    flashScene('#1565c0');
+  }
+}
+
+function handleCorrect() {
+  addPoint();
+  disable('btn-correct');
+  disable('btn-wrong');
+  flash('#43a047');
+  flashScene('#43a047');
+}
+
+function handleWrong() {
+  playWrong();
+  disable('btn-correct');
+  disable('btn-wrong');
+  flash('#e53935');
+  flashScene('#e53935');
+}
+
+function nextRound() {
+  if (currentMode === 1)      initMode1();
+  else if (currentMode === 2) initMode2();
+  else                        initMode3();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODE SWITCHING
+// ═══════════════════════════════════════════════════════════════
+function setMode(m) {
+  currentMode = m;
+  [1, 2, 3].forEach(i =>
+    document.getElementById(`modeBtn${i}`).classList.toggle('active', i === m)
+  );
+  nextRound();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════════════
+function resetGame() {
+  if (!confirm('Reset the game? All points will be cleared.')) return;
+  score   = 0;
+  lastKey = '';
+  particles = [];
+  fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+  document.getElementById('win-banner').classList.remove('show');
+  updateUI();
+  nextRound();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DOM HELPERS
+// ═══════════════════════════════════════════════════════════════
+function setAnswerBox(text, cls) {
+  const el = document.getElementById('answer-box');
+  el.textContent = text;
+  el.className = cls;
+}
+function hidePrepGrid() {
+  const g = document.getElementById('prep-grid');
+  g.classList.remove('visible');
+  g.innerHTML = '';
+}
+function show(id)            { document.getElementById(id).style.display = ''; }
+function hide(id)            { document.getElementById(id).style.display = 'none'; }
+function enable(id)          { document.getElementById(id).disabled = false; }
+function disable(id)         { document.getElementById(id).disabled = true; }
+function setLabel(id, label) { document.getElementById(id).textContent = label; }
+
+// ═══════════════════════════════════════════════════════════════
+// SPACEBAR  — cycles: Show Answer / Place  →  Correct  →  Next
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.code !== 'Space') return;
+  e.preventDefault();   // stop page scroll
+
+  const btnShow    = document.getElementById('btn-show');
+  const btnCorrect = document.getElementById('btn-correct');
+
+  const showVisible  = btnShow.style.display !== 'none' && !btnShow.disabled;
+  const correctReady = !btnCorrect.disabled;
+
+  if (showVisible)       handleShow();
+  else if (correctReady) handleCorrect();
+  else                   nextRound();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+updateUI();
+initMode1();
+</script>
+</body>
+</html>
